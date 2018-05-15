@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# dataset
+articles*.csv
+
+# mac things
+.DS_Store
