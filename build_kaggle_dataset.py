@@ -5,29 +5,36 @@ import os
 import sys
 
 
-def load_dataset(path_csv):
+def load_dataset(path_csv, dataset = []):
     """Loads dataset into memory from csv file"""
     # Open the csv file, need to specify the encoding for python3
     use_python3 = sys.version_info[0] >= 3
     with (open(path_csv, encoding="windows-1252") if use_python3 else open(path_csv)) as f:
         csv_file = csv.reader(f, delimiter=',')
-        dataset = []
-        words, tags = [], []
+        #words, tags = [], []
+        articles, labels = [], []
 
         # Each line of the csv corresponds to one word
         for idx, row in enumerate(csv_file):
             if idx == 0: continue
-            sentence, word, pos, tag = row
-            # If the first column is non empty it means we reached a new sentence
-            if len(sentence) != 0:
-                if len(words) > 0:
-                    assert len(words) == len(tags)
-                    dataset.append((words, tags))
-                    words, tags = [], []
+            id,title,publication,author,date,year,month,url,content = row
+            #sentence, word, pos, tag = row
+            label = 0
+            if publication == "Fox News" or publication == "New York Times":
+                label = 1
+            elif publication == "Reuters":
+                label = 0
+            else:
+                continue
+
+            #if len(sentence) != 0:
+                #if len(words) > 0:
+                    #assert len(words) == len(tags)
+            dataset.append((content, labels)
             try:
-                word, tag = str(word), str(tag)
-                words.append(word)
-                tags.append(tag)
+                article, label = str(article), str(label)
+                articles.append(article)
+                labels.append(label)
             except UnicodeDecodeError as e:
                 print("An exception was raised, skipping a word: {}".format(e))
                 pass
@@ -36,7 +43,7 @@ def load_dataset(path_csv):
 
 
 def save_dataset(dataset, save_dir):
-    """Writes sentences.txt and labels.txt files in save_dir from dataset
+    """Writes sentences.txt and lsabels.txt files in save_dir from dataset
 
     Args:
         dataset: ([(["a", "cat"], ["O", "O"]), ...])
@@ -58,13 +65,17 @@ def save_dataset(dataset, save_dir):
 
 if __name__ == "__main__":
     # Check that the dataset exists (you need to make sure you haven't downloaded the `ner.csv`)
-    path_dataset = 'data/kaggle/ner_dataset.csv'
+    path_dataset1 = 'data/kaggle/article1.csv'
+    path_dataset2 = 'data/kaggle/article2.csv'
+    path_dataset3 = 'data/kaggle/article3.csv'
     msg = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset)
     assert os.path.isfile(path_dataset), msg
 
     # Load the dataset into memory
-    print("Loading Kaggle dataset into memory...")
-    dataset = load_dataset(path_dataset)
+    print("Loading All The News dataset into memory...")
+    dataset = load_dataset(path_dataset1)
+    dataset = load_dataset(path_dataset2, dataset)
+    dataset = load_dataset(path_dataset3, dataset)
     print("- done.")
 
     # Split the dataset into train, dev and split (dummy split with no shuffle)
