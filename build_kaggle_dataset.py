@@ -59,8 +59,8 @@ def save_dataset(dataset, save_dir):
     with open(os.path.join(save_dir, 'articles.txt'), 'w') as file_articles:
         with open(os.path.join(save_dir, 'tags.txt'), 'w') as file_tags:
             for articles, tags in dataset:
-                file_articles.write("{}\n".format(" ".join(articles)))
-                file_tags.write("{}\n".format(" ".join(tags)))
+                file_articles.write("{}\n".format("".join(articles)))
+                file_tags.write("{}\n".format("".join(tags)))
     print("- done.")
 
 

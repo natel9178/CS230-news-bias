@@ -1,9 +1,11 @@
 #!/bin/bash
 set -e
-KAGGLEDATASETDIR=data/kaggle/train
+KAGGLEDATASETDIR=$PWD/data/kaggle/train
 
 # Makes programs, downloads sample data, trains a GloVe model, and then evaluates it.
 # One optional argument can specify the language used for eval script: matlab, octave or [default] python
+
+cd data
 
 if [ ! -d "GloVe" ]; then
   git clone https://github.com/stanfordnlp/GloVe.git
@@ -13,9 +15,10 @@ cd GloVe
 make
 if [ ! -d "$KAGGLEDATASETDIR" ]; then
   echo "Need to build article datasets. Run build_kaggle_dataset.py to do this."
+  exit
 fi
 
-CORPUS=../data/kaggle/glove/articles.txt
+CORPUS=../kaggle/glove/articles.txt
 VOCAB_FILE=vocab.txt
 COOCCURRENCE_FILE=cooccurrence.bin
 COOCCURRENCE_SHUF_FILE=cooccurrence.shuf.bin
