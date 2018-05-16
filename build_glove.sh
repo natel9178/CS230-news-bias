@@ -5,7 +5,9 @@ KAGGLEDATASETDIR=./data/kaggle/train
 # Makes programs, downloads sample data, trains a GloVe model, and then evaluates it.
 # One optional argument can specify the language used for eval script: matlab, octave or [default] python
 
-git clone https://github.com/stanfordnlp/GloVe.git
+if [ ! -d "GloVe" ]; then
+  git clone https://github.com/stanfordnlp/GloVe.git
+fi
 
 cd GloVe
 make
