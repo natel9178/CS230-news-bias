@@ -4,6 +4,8 @@ set -e
 # Makes programs, downloads sample data, trains a GloVe model, and then evaluates it.
 # One optional argument can specify the language used for eval script: matlab, octave or [default] python
 
+git clone https://github.com/stanfordnlp/GloVe.git
+
 make
 if [ ! -e text8 ]; then
   echo "Need to build article datasets. Run build_kaggle_dataset.py to do this."
