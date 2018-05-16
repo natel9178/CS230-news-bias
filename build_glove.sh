@@ -7,6 +7,7 @@ KAGGLEDATASETDIR=./data/kaggle/train
 
 git clone https://github.com/stanfordnlp/GloVe.git
 
+cd GloVe
 make
 if [ ! -d "$KAGGLEDATASETDIR" ]; then
   echo "Need to build article datasets. Run build_kaggle_dataset.py to do this."
