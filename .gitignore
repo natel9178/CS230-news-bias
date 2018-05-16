@@ -111,3 +111,9 @@ tags.txt
 
 # mac things
 .DS_Store
+
+# glove
+GloVe/
+
+# data
+data/

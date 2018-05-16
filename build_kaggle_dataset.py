@@ -92,3 +92,4 @@ if __name__ == "__main__":
     save_dataset(train_dataset, 'data/kaggle/train')
     save_dataset(dev_dataset, 'data/kaggle/dev')
     save_dataset(test_dataset, 'data/kaggle/test')
+    save_dataset(dataset, 'data/kaggle/glove')
