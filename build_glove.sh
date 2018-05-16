@@ -15,7 +15,7 @@ if [ ! -d "$KAGGLEDATASETDIR" ]; then
   echo "Need to build article datasets. Run build_kaggle_dataset.py to do this."
 fi
 
-CORPUS=./data/kaggle/glove/articles.txt
+CORPUS=../data/kaggle/glove/articles.txt
 VOCAB_FILE=vocab.txt
 COOCCURRENCE_FILE=cooccurrence.bin
 COOCCURRENCE_SHUF_FILE=cooccurrence.shuf.bin
