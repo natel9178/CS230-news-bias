@@ -105,6 +105,15 @@ venv.bak/
 
 # dataset
 articles*.csv
+data/kaggle
+articles.txt
+tags.txt
 
 # mac things
 .DS_Store
+
+# glove
+GloVe/
+
+# data
+data/
