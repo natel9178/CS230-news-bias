@@ -4,7 +4,7 @@ import tensorflow as tf
 
 def load_glove_embedding(path_txt):
     embeddings_index = dict()
-    f = open('glove.6B.100d.txt')
+    f = open('../data/GloVe/glove.6B.100d.txt')
     for line in f:
         values = line.split()
         word = values[0]
