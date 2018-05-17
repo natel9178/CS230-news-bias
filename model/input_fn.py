@@ -2,6 +2,16 @@
 
 import tensorflow as tf
 
+def load_glove_embedding(path_txt):
+    embeddings_index = dict()
+    f = open('glove.6B.100d.txt')
+    for line in f:
+        values = line.split()
+        word = values[0]
+        coefs = asarray(values[1:], dtype='float32')
+        embeddings_index[word] = coefs
+    f.close()
+    print('Loaded %s word vectors.' % len(embeddings_index))
 
 def load_dataset_from_text(path_txt, vocab):
     """Create tf.data Instance from txt file
