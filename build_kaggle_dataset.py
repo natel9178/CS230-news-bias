@@ -4,12 +4,13 @@ import csv
 import os
 import sys
 
+csv.field_size_limit(sys.maxsize)
 
 def load_dataset(path_csv, dataset = []):
     """Loads dataset into memory from csv file"""
     # Open the csv file, need to specify the encoding for python3
     use_python3 = sys.version_info[0] >= 3
-    with (open(path_csv, encoding="windows-1252") if use_python3 else open(path_csv)) as f:
+    with (open(path_csv, encoding="utf8") if use_python3 else open(path_csv)) as f:
         csv_file = csv.reader(f, delimiter=',')
         #words, tags = [], []
         articles, labels = [], []
@@ -17,7 +18,7 @@ def load_dataset(path_csv, dataset = []):
         # Each line of the csv corresponds to one word
         for idx, row in enumerate(csv_file):
             if idx == 0: continue
-            id,title,publication,author,date,year,month,url,content = row
+            e,id,title,publication,author,date,year,month,url,content = row
             #sentence, word, pos, tag = row
             label = 0
             if publication == "Fox News" or publication == "New York Times":
@@ -30,14 +31,14 @@ def load_dataset(path_csv, dataset = []):
             #if len(sentence) != 0:
                 #if len(words) > 0:
                     #assert len(words) == len(tags)
-            dataset.append((content, labels)
-            try:
-                article, label = str(article), str(label)
-                articles.append(article)
-                labels.append(label)
-            except UnicodeDecodeError as e:
-                print("An exception was raised, skipping a word: {}".format(e))
-                pass
+            dataset.append((content, labels))
+            # try:
+            #     article, label = str(content), str(label)
+            #     articles.append(article)
+            #     labels.append(label)
+            # except UnicodeDecodeError as e:
+            #     print("An exception was raised, skipping a word: {}".format(e))
+            #     pass
 
     return dataset
 
@@ -55,21 +56,25 @@ def save_dataset(dataset, save_dir):
         os.makedirs(save_dir)
 
     # Export the dataset
-    with open(os.path.join(save_dir, 'sentences.txt'), 'w') as file_sentences:
-        with open(os.path.join(save_dir, 'labels.txt'), 'w') as file_labels:
-            for words, tags in dataset:
-                file_sentences.write("{}\n".format(" ".join(words)))
-                file_labels.write("{}\n".format(" ".join(tags)))
+    with open(os.path.join(save_dir, 'articles.txt'), 'w') as file_articles:
+        with open(os.path.join(save_dir, 'tags.txt'), 'w') as file_tags:
+            for articles, tags in dataset:
+                file_articles.write("{}\n".format("".join(articles)))
+                file_tags.write("{}\n".format("".join(tags)))
     print("- done.")
 
 
 if __name__ == "__main__":
     # Check that the dataset exists (you need to make sure you haven't downloaded the `ner.csv`)
-    path_dataset1 = 'data/kaggle/article1.csv'
-    path_dataset2 = 'data/kaggle/article2.csv'
-    path_dataset3 = 'data/kaggle/article3.csv'
-    msg = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset)
-    assert os.path.isfile(path_dataset), msg
+    path_dataset1 = 'data/kaggle/articles1.csv'
+    path_dataset2 = 'data/kaggle/articles2.csv'
+    path_dataset3 = 'data/kaggle/articles3.csv'
+    msg1 = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset1)
+    msg2 = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset2)
+    msg3 = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset3)
+    assert os.path.isfile(path_dataset1), msg1
+    assert os.path.isfile(path_dataset2), msg2
+    assert os.path.isfile(path_dataset3), msg3
 
     # Load the dataset into memory
     print("Loading All The News dataset into memory...")
@@ -87,3 +92,4 @@ if __name__ == "__main__":
     save_dataset(train_dataset, 'data/kaggle/train')
     save_dataset(dev_dataset, 'data/kaggle/dev')
     save_dataset(test_dataset, 'data/kaggle/test')
+    save_dataset(dataset, 'data/kaggle/glove')
