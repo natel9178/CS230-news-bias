@@ -13,7 +13,7 @@ def load_dataset(path_csv, dataset = []):
     with (open(path_csv, encoding="utf8") if use_python3 else open(path_csv)) as f:
         csv_file = csv.reader(f, delimiter=',')
         #words, tags = [], []
-        articles, labels = [], []
+        # articles, labels = [], []
 
         # Each line of the csv corresponds to one word
         for idx, row in enumerate(csv_file):
@@ -31,7 +31,7 @@ def load_dataset(path_csv, dataset = []):
             #if len(sentence) != 0:
                 #if len(words) > 0:
                     #assert len(words) == len(tags)
-            dataset.append((content, labels))
+            dataset.append((content, label))
             # try:
             #     article, label = str(content), str(label)
             #     articles.append(article)
@@ -59,8 +59,9 @@ def save_dataset(dataset, save_dir):
     with open(os.path.join(save_dir, 'articles.txt'), 'w') as file_articles:
         with open(os.path.join(save_dir, 'tags.txt'), 'w') as file_tags:
             for articles, tags in dataset:
+                
                 file_articles.write("{}\n".format("".join(articles)))
-                file_tags.write("{}\n".format("".join(tags)))
+                file_tags.write("{}\n".format(tags))
     print("- done.")
 
 

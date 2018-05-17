@@ -5,6 +5,7 @@ from collections import Counter
 import json
 import os
 import sys
+import string
 
 
 parser = argparse.ArgumentParser()
@@ -12,7 +13,7 @@ parser.add_argument('--min_count_word', default=1, help="Minimum count for words
                     type=int)
 parser.add_argument('--min_count_tag', default=1, help="Minimum count for tags in the dataset",
                     type=int)
-parser.add_argument('--data_dir', default='data/small', help="Directory containing the dataset")
+parser.add_argument('--data_dir', default='data/kaggle', help="Directory containing the dataset")
 
 # Hyper parameters for the vocab
 NUM_OOV_BUCKETS = 1 # number of buckets (= number of ids) for unknown words
@@ -55,7 +56,7 @@ def update_vocab(txt_path, vocab):
     """
     with open(txt_path) as f:
         for i, line in enumerate(f):
-            vocab.update(line.strip().split(' '))
+            vocab.update(line.strip().translate(str.maketrans("", "", string.punctuation)).split(' '))
 
 
     return i + 1
@@ -67,47 +68,47 @@ if __name__ == '__main__':
     # Build word vocab with train and test datasets
     print("Building word vocabulary...")
     words = Counter()
-    size_train_sentences = update_vocab(os.path.join(args.data_dir, 'train/sentences.txt'), words)
-    size_dev_sentences = update_vocab(os.path.join(args.data_dir, 'dev/sentences.txt'), words)
-    size_test_sentences = update_vocab(os.path.join(args.data_dir, 'test/sentences.txt'), words)
+    size_train_articles = update_vocab(os.path.join(args.data_dir, 'train/articles.txt'), words)
+    size_dev_articles = update_vocab(os.path.join(args.data_dir, 'dev/articles.txt'), words)
+    size_test_articles = update_vocab(os.path.join(args.data_dir, 'test/articles.txt'), words)
     print("- done.")
 
     # Build tag vocab with train and test datasets
-    print("Building tag vocabulary...")
-    tags = Counter()
-    size_train_tags = update_vocab(os.path.join(args.data_dir, 'train/labels.txt'), tags)
-    size_dev_tags = update_vocab(os.path.join(args.data_dir, 'dev/labels.txt'), tags)
-    size_test_tags = update_vocab(os.path.join(args.data_dir, 'test/labels.txt'), tags)
-    print("- done.")
+    # print("Building tag vocabulary...")
+    # tags = Counter()
+    # size_train_tags = update_vocab(os.path.join(args.data_dir, 'train/labels.txt'), tags)
+    # size_dev_tags = update_vocab(os.path.join(args.data_dir, 'dev/labels.txt'), tags)
+    # size_test_tags = update_vocab(os.path.join(args.data_dir, 'test/labels.txt'), tags)
+    # print("- done.")
 
     # Assert same number of examples in datasets
-    assert size_train_sentences == size_train_tags
-    assert size_dev_sentences == size_dev_tags
-    assert size_test_sentences == size_test_tags
+    # assert size_train_articles == size_train_tags
+    # assert size_dev_articles == size_dev_tags
+    # assert size_test_articles == size_test_tags
 
     # Only keep most frequent tokens
     words = [tok for tok, count in words.items() if count >= args.min_count_word]
-    tags = [tok for tok, count in tags.items() if count >= args.min_count_tag]
+    # tags = [tok for tok, count in tags.items() if count >= args.min_count_tag]
 
     # Add pad tokens
     if PAD_WORD not in words: words.append(PAD_WORD)
-    if PAD_TAG not in tags: tags.append(PAD_TAG)
+    # if PAD_TAG not in tags: tags.append(PAD_TAG)
 
     # Save vocabularies to file
-    print("Saving vocabularies to file...")
+    print("Saving vocabulary to file...")
     save_vocab_to_txt_file(words, os.path.join(args.data_dir, 'words.txt'))
-    save_vocab_to_txt_file(tags, os.path.join(args.data_dir, 'tags.txt'))
+    # save_vocab_to_txt_file(tags, os.path.join(args.data_dir, 'tags.txt'))
     print("- done.")
 
     # Save datasets properties in json file
     sizes = {
-        'train_size': size_train_sentences,
-        'dev_size': size_dev_sentences,
-        'test_size': size_test_sentences,
+        'train_size': size_train_articles,
+        'dev_size': size_dev_articles,
+        'test_size': size_test_articles,
         'vocab_size': len(words) + NUM_OOV_BUCKETS,
-        'number_of_tags': len(tags),
+        # 'number_of_tags': len(tags),
         'pad_word': PAD_WORD,
-        'pad_tag': PAD_TAG,
+        # 'pad_tag': PAD_TAG,
         'num_oov_buckets': NUM_OOV_BUCKETS
     }
     save_dict_to_json(sizes, os.path.join(args.data_dir, 'dataset_params.json'))
