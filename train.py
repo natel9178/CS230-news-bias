@@ -11,6 +11,7 @@ from model.utils import set_logger
 from model.training import train_and_evaluate
 from model.input_fn import input_fn
 from model.input_fn import load_dataset_from_text
+from model.input_fn import load_glove_embedding
 from model.model_fn import model_fn
 
 
@@ -49,21 +50,25 @@ if __name__ == '__main__':
 
     # Get paths for vocabularies and dataset
     path_words = os.path.join(args.data_dir, 'words.txt')
-    path_tags = os.path.join(args.data_dir, 'tags.txt')
-    path_train_sentences = os.path.join(args.data_dir, 'train/sentences.txt')
-    path_train_labels = os.path.join(args.data_dir, 'train/labels.txt')
-    path_eval_sentences = os.path.join(args.data_dir, 'dev/sentences.txt')
-    path_eval_labels = os.path.join(args.data_dir, 'dev/labels.txt')
+    # path_tags = os.path.join(args.data_dir, 'tags.txt')
+    path_train_articles = os.path.join(args.data_dir, 'train/articles.txt')
+    path_train_labels = os.path.join(args.data_dir, 'train/tags.txt')
+    path_eval_articles = os.path.join(args.data_dir, 'dev/articles.txt')
+    path_eval_labels = os.path.join(args.data_dir, 'dev/tags.txt')
+    path_glove_database = os.path.join(args.data_dir, '../GloVe/glove.6B.100d.txt')
+
+    # Load Glove Vectors
+    glove_vectors = load_glove_embedding(path_glove_database, path_words)
 
     # Load Vocabularies
-    words = tf.contrib.lookup.index_table_from_file(path_words, num_oov_buckets=num_oov_buckets)
-    tags = tf.contrib.lookup.index_table_from_file(path_tags)
+    # words = tf.contrib.lookup.index_table_from_file(path_words, num_oov_buckets=num_oov_buckets)
+    # tags = tf.contrib.lookup.index_table_from_file(path_tags)
 
     # Create the input data pipeline
     logging.info("Creating the datasets...")
-    train_sentences = load_dataset_from_text(path_train_sentences, words)
+    train_articles = load_dataset_from_text(path_train_articles, words)
     train_labels = load_dataset_from_text(path_train_labels, tags)
-    eval_sentences = load_dataset_from_text(path_eval_sentences, words)
+    eval_articles = load_dataset_from_text(path_eval_articles, words)
     eval_labels = load_dataset_from_text(path_eval_labels, tags)
 
     # Specify other parameters for the dataset and the model
