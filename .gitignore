@@ -117,3 +117,6 @@ GloVe/
 
 # data
 data/
+
+# tf
+*tfevents*
