@@ -11,6 +11,7 @@ from keras.layers import Input
 from keras.layers import Flatten
 from keras.layers import Dense
 from keras.models import Sequential
+from keras.layers import GlobalMaxPooling1D
 
 EMBEDDING_DIM = 100
 MAX_SEQUENCE_LENGTH = 1000
@@ -43,8 +44,9 @@ def build_model(mode, inputs, params):
         model.add(Conv1D(128, 5, activation='relu'))
         model.add(MaxPooling1D(5))
         model.add(Conv1D(128, 5, activation='relu'))
-        model.add(MaxPooling1D(35))
-        model.add(Flatten())
+        # model.add(MaxPooling1D(35))
+        # model.add(Flatten())
+        model.add(GlobalMaxPooling1D())
         model.add(Dense(128, activation='relu'))
         model.add(Dense(1, activation='sigmoid'))
 
@@ -100,8 +102,8 @@ def model_fn(mode, inputs, params, reuse=False):
     y_labels = tf.reshape(string_tensor, [-1, 1])
     # Define loss and accuracy (we need to apply a mask to account for padding)
     losses = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=y_labels)
-    mask = tf.sequence_mask(article_length)
-    losses = tf.boolean_mask(losses, mask)
+    # mask = tf.sequence_mask(article_length)
+    # losses = tf.boolean_mask(losses, mask)
     loss = tf.reduce_mean(losses)
     accuracy = tf.reduce_mean(tf.cast(tf.equal(y_labels, predictions), tf.float32))
 
