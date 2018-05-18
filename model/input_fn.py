@@ -1,17 +1,24 @@
 """Create the input data pipeline using `tf.data`"""
 
 import tensorflow as tf
+from numpy import asarray
 
-def load_glove_embedding(path_txt):
+def load_words(path_words):
+    return set(line.strip() for line in open(path_words))
+
+def load_glove_embedding(path_txt, path_words):
     embeddings_index = dict()
-    f = open('../data/GloVe/glove.6B.100d.txt')
+    f = open(path_txt) # f = open('../data/GloVe/glove.6B.100d.txt')
+    words = load_words(path_words)
     for line in f:
         values = line.split()
         word = values[0]
-        coefs = asarray(values[1:], dtype='float32')
-        embeddings_index[word] = coefs
+        if word in words:
+            coefs = asarray(values[1:], dtype='float32')
+            embeddings_index[word] = coefs
     f.close()
-    print('Loaded %s word vectors.' % len(embeddings_index))
+    print('Loaded %s word vectors for %s words in train corpus' % (len(embeddings_index), len(words)))
+    return embeddings_index
 
 def load_dataset_from_text(path_txt, vocab):
     """Create tf.data Instance from txt file
