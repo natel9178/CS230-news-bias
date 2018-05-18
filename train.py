@@ -13,6 +13,8 @@ from model.training import train_and_evaluate
 from model.input_fn import input_fn
 from model.input_fn import load_dataset_from_text
 from model.input_fn import load_glove_embedding
+from model.input_fn import generate_embedding_matrix
+from model.input_fn import load_words
 from model.model_fn import model_fn
 
 
@@ -61,12 +63,9 @@ if __name__ == '__main__':
     path_eval_labels = os.path.join(args.data_dir, 'dev/tags.txt')
     path_glove_database = os.path.join(args.data_dir, '../GloVe/glove.6B.100d.txt')
 
-    logging.info("Loading Glove Vectors...")
-    # Load Glove Vectors
-    # glove_vectors = load_glove_embedding(path_glove_database, path_words)
-
     # Load Vocabularies
     words = tf.contrib.lookup.index_table_from_file(path_words, num_oov_buckets=num_oov_buckets)
+    words_list = load_words(path_words)
 
     # Create the input data pipeline
     logging.info("Creating the datasets...")
@@ -84,6 +83,15 @@ if __name__ == '__main__':
     train_inputs = input_fn('train', train_articles, train_labels, params)
     eval_inputs = input_fn('eval', eval_articles, eval_labels, params)
     logging.info("- done.")
+
+    # Load Glove Vectors
+    glove_embedding = load_glove_embedding(path_glove_database)
+    embedding_matrix = generate_embedding_matrix(words_list, glove_embedding)
+
+    train_inputs['glove'] = embedding_matrix
+    eval_inputs['glove'] = embedding_matrix
+    train_inputs['words_list'] = words_list
+    eval_inputs['words_list'] = words_list
 
     # Define the models (2 different set of nodes that share weights for train and eval)
     logging.info("Creating the model...")

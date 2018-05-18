@@ -5,9 +5,11 @@ import os
 
 from tqdm import trange
 import tensorflow as tf
+from keras import backend as K
 
 from model.utils import save_dict_to_json
 from model.evaluation import evaluate_sess
+
 
 
 def train_sess(sess, model_spec, num_steps, writer, params):
@@ -71,8 +73,10 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params, res
     begin_at_epoch = 0
 
     with tf.Session() as sess:
+        K.set_session(sess)
         # Initialize model variables
         sess.run(train_model_spec['variable_init_op'])
+        sess.run(train_model_spec['iterator_init_op'])
 
         # Reload weights from directory if specified
         if restore_from is not None:
@@ -88,6 +92,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params, res
 
         best_eval_acc = 0.0
         for epoch in range(begin_at_epoch, begin_at_epoch + params.num_epochs):
+            m = sess.run(train_model_spec['article'])
             # Run one epoch
             logging.info("Epoch {}/{}".format(epoch + 1, begin_at_epoch + params.num_epochs))
             # Compute number of batches in one epoch (one full pass over the training set)

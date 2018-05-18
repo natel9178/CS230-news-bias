@@ -2,12 +2,15 @@
 
 import tensorflow as tf
 from numpy import asarray
+import numpy as np
 import tensorflow.contrib.eager as tfe
 
-# def load_words(path_words):
-#     return set(line.strip() for line in open(path_words))
+EMBEDDING_DIM = 100
 
-def load_glove_embedding(path_txt, path_words):
+def load_words(path_words):
+    return list(line.strip() for line in open(path_words))
+
+def load_glove_embedding(path_txt):
     embeddings_index = dict()
     f = open(path_txt) # f = open('../data/GloVe/glove.6B.100d.txt')
     # words = load_words(path_words)
@@ -20,6 +23,16 @@ def load_glove_embedding(path_txt, path_words):
     f.close()
     print('Loaded %s word vectors' % len(embeddings_index))
     return embeddings_index
+
+def generate_embedding_matrix(words_list, embeddings_index):
+    embedding_matrix = np.zeros((len(words_list) + 1, EMBEDDING_DIM))
+    for i, word in enumerate(words_list):
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            # words not found in embedding index will be all-zeros.
+            embedding_matrix[i] = embedding_vector
+
+    return embedding_matrix
 
 def load_dataset_from_text(path_txt, vocab):
     """Create tf.data Instance from txt file
@@ -71,7 +84,7 @@ def input_fn(mode, articles, labels, params):
 
     dataset = (dataset
         .shuffle(buffer_size=buffer_size)
-        #.padded_batch(params.batch_size, padded_shapes=padded_shapes) #, padding_values=padding_values)
+        .padded_batch(30, padded_shapes=dataset.output_shapes) #, padding_values=padding_values) #.batch(30)
         .prefetch(1)  # make sure you always have one batch ready to serve
     )
 
@@ -79,7 +92,7 @@ def input_fn(mode, articles, labels, params):
     iterator = dataset.make_initializable_iterator()
 
     # Query the output of the iterator for input to the model
-    next_element = iterator.get_next() # ((sentence, sentence_lengths), (labels, _))
+    (article, article_length), labels = iterator.get_next() # ((sentence, sentence_lengths), (labels, _))
     init_op = iterator.initializer
 
     # with tf.Session() as sess:
@@ -92,9 +105,9 @@ def input_fn(mode, articles, labels, params):
 
     # Build and return a dictionnary containing the nodes / ops
     inputs = {
-        'articles': sentence,
+        'article': article,
         'labels': labels,
-        'sentence_lengths': sentence_lengths,
+        'article_length': article_length,
         'iterator_init_op': init_op
     }
 

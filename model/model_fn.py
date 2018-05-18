@@ -1,7 +1,19 @@
 """Define the model."""
 
 import tensorflow as tf
+import keras 
+import numpy as np
+from keras import backend as K
+from keras.layers import Embedding
+from keras.layers import Conv1D
+from keras.layers import MaxPooling1D
+from keras.layers import Input
+from keras.layers import Flatten
+from keras.layers import Dense
+from keras.models import Sequential
 
+EMBEDDING_DIM = 100
+MAX_SEQUENCE_LENGTH = 1000
 
 def build_model(mode, inputs, params):
     """Compute logits of the model (output distribution)
@@ -15,53 +27,45 @@ def build_model(mode, inputs, params):
     Returns:
         output: (tf.Tensor) output of the model
     """
-    sentence = inputs['sentence']
+    article = inputs['article']
+    embedding_matrix = inputs['glove']
+    words_list = inputs['words_list']
 
     if params.model_version == 'lstm':
         # Get word embeddings for each token in the sentence
-        # embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,
-        #         shape=[params.vocab_size, params.embedding_size])
+        model = Sequential()
+        embedding_layer = Embedding(len(words_list) + 1,
+                            EMBEDDING_DIM,
+                            input_length=MAX_SEQUENCE_LENGTH)
+        model.add(embedding_layer)
+        model.add(Conv1D(128, 5, activation='relu'))
+        model.add(MaxPooling1D(5))
+        model.add(Conv1D(128, 5, activation='relu'))
+        model.add(MaxPooling1D(5))
+        model.add(Conv1D(128, 5, activation='relu'))
+        model.add(MaxPooling1D(35))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dense(1, activation='sigmoid'))
 
-        embeddings_index = {}
-        f = open(os.path.join(GLOVE_DIR, 'glove.6B.100d.txt'))
-        for line in f:
-            values = line.split()
-            word = values[0]
-            coefs = np.asarray(values[1:], dtype='float32')
-            embeddings_index[word] = coefs
-        f.close()
+        # article = embedding_layer(article)
 
-        print('Found %s word vectors.' % len(embeddings_index))
+        # article = Conv1D(128, 5, activation='relu')(article)
+        # article = MaxPooling1D(5)(article)
+        # article = Conv1D(128, 5, activation='relu')(article)
+        # article = MaxPooling1D(5)(article)
+        # article = Conv1D(128, 5, activation='relu')(article)
+        # article = MaxPooling1D(35)(article)  # global max pooling
+        # article = Flatten()(article)
+        # article = Dense(128, activation='relu')(article)
+        # preds = Dense(1, activation='sigmoid')(article)
 
-        embedding_matrix = np.zeros((len(word_index) + 1, EMBEDDING_DIM))
-
-        #have to iterate over input
-        for word, i in word_index.items():
-            embedding_vector = embeddings_index.get(word)
-            if embedding_vector is not None:
-                # words not found in embedding index will be all-zeros.
-                embedding_matrix[i] = embedding_vector
-
-        W = tf.Variable(tf.constant(0.0, shape=[vocab_size, embedding_dim]),
-                trainable=False, name="W")
-
-        embedding_placeholder = tf.placeholder(tf.float32, [vocab_size, embedding_dim])
-        embedding_init = W.assign(embedding_placeholder)
-
-        # ...
-        sess = tf.Session()
-
-        sess.run(embedding_init, feed_dict={embedding_placeholder: embedding_matrix})
-
-        sentence = tf.nn.embedding_lookup(embeddings, sentence)
-
-        # Apply LSTM over the embeddings
-        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-        output, _  = tf.nn.dynamic_rnn(lstm_cell, sentence, dtype=tf.float32)
+        # # Apply LSTM over the embeddings
+        # lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
+        # output, _  = tf.nn.dynamic_rnn(lstm_cell, article, dtype=tf.float32)
 
         # Compute logits from the output of the LSTM
-        logits = tf.layers.dense(output, params.number_of_tags)
-
+        logits = model(article)
     else:
         raise NotImplementedError("Unknown model version: {}".format(params.model_version))
 
@@ -83,21 +87,23 @@ def model_fn(mode, inputs, params, reuse=False):
     """
     is_training = (mode == 'train')
     labels = inputs['labels']
-    sentence_lengths = inputs['sentence_lengths']
+    article_length = inputs['article_length']
 
     # -----------------------------------------------------------
     # MODEL: define the layers of the model
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
         logits = build_model(mode, inputs, params)
-        predictions = tf.argmax(logits, -1)
+        predictions = tf.cast(tf.greater(logits,0.5), tf.float32)
 
+    string_tensor = tf.string_to_number(labels)
+    y_labels = tf.reshape(string_tensor, [-1, 1])
     # Define loss and accuracy (we need to apply a mask to account for padding)
-    losses = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
-    mask = tf.sequence_mask(sentence_lengths)
+    losses = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=y_labels)
+    mask = tf.sequence_mask(article_length)
     losses = tf.boolean_mask(losses, mask)
     loss = tf.reduce_mean(losses)
-    accuracy = tf.reduce_mean(tf.cast(tf.equal(labels, predictions), tf.float32))
+    accuracy = tf.reduce_mean(tf.cast(tf.equal(y_labels, predictions), tf.float32))
 
     # Define training step that minimizes the loss with the Adam optimizer
     if is_training:
@@ -110,7 +116,7 @@ def model_fn(mode, inputs, params, reuse=False):
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
         metrics = {
-            'accuracy': tf.metrics.accuracy(labels=labels, predictions=predictions),
+            'accuracy': tf.metrics.accuracy(labels=labels, predictions=tf.as_string(predictions)),
             'loss': tf.metrics.mean(loss)
         }
 
