@@ -92,7 +92,7 @@ def input_fn(mode, articles, labels, params):
     iterator = dataset.make_initializable_iterator()
 
     # Query the output of the iterator for input to the model
-    (article, article_length), labels = iterator.get_next() # ((sentence, sentence_lengths), (labels, _))
+    ((article, article_length), labels) = iterator.get_next() # ((sentence, sentence_lengths), (labels, _))
     init_op = iterator.initializer
 
     # with tf.Session() as sess:
