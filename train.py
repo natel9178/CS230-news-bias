@@ -5,6 +5,7 @@ import logging
 import os
 
 import tensorflow as tf
+import tensorflow.contrib.eager as tfe
 
 from model.utils import Params
 from model.utils import set_logger
@@ -25,8 +26,11 @@ parser.add_argument('--restore_dir', default=None,
 
 if __name__ == '__main__':
     # Set the random seed for the whole graph for reproductible experiments
+    # tfe.enable_eager_execution()
     tf.set_random_seed(230)
+    
 
+    logging.info("Loading Params...")
     # Load the parameters from the experiment params.json file in model_dir
     args = parser.parse_args()
     json_path = os.path.join(args.model_dir, 'params.json')
@@ -47,7 +51,7 @@ if __name__ == '__main__':
 
     # Set the logger
     set_logger(os.path.join(args.model_dir, 'train.log'))
-
+    
     # Get paths for vocabularies and dataset
     path_words = os.path.join(args.data_dir, 'words.txt')
     # path_tags = os.path.join(args.data_dir, 'tags.txt')
@@ -57,29 +61,28 @@ if __name__ == '__main__':
     path_eval_labels = os.path.join(args.data_dir, 'dev/tags.txt')
     path_glove_database = os.path.join(args.data_dir, '../GloVe/glove.6B.100d.txt')
 
+    logging.info("Loading Glove Vectors...")
     # Load Glove Vectors
-    glove_vectors = load_glove_embedding(path_glove_database, path_words)
+    # glove_vectors = load_glove_embedding(path_glove_database, path_words)
 
     # Load Vocabularies
-    # words = tf.contrib.lookup.index_table_from_file(path_words, num_oov_buckets=num_oov_buckets)
-    # tags = tf.contrib.lookup.index_table_from_file(path_tags)
+    words = tf.contrib.lookup.index_table_from_file(path_words, num_oov_buckets=num_oov_buckets)
 
     # Create the input data pipeline
     logging.info("Creating the datasets...")
     train_articles = load_dataset_from_text(path_train_articles, words)
-    train_labels = load_dataset_from_text(path_train_labels, tags)
+    train_labels = tf.data.TextLineDataset(path_train_labels)
     eval_articles = load_dataset_from_text(path_eval_articles, words)
-    eval_labels = load_dataset_from_text(path_eval_labels, tags)
+    eval_labels = tf.data.TextLineDataset(path_eval_labels)
 
     # Specify other parameters for the dataset and the model
     params.eval_size = params.dev_size
     params.buffer_size = params.train_size # buffer size for shuffling
     params.id_pad_word = words.lookup(tf.constant(params.pad_word))
-    params.id_pad_tag = tags.lookup(tf.constant(params.pad_tag))
 
     # Create the two iterators over the two datasets
-    train_inputs = input_fn('train', train_sentences, train_labels, params)
-    eval_inputs = input_fn('eval', eval_sentences, eval_labels, params)
+    train_inputs = input_fn('train', train_articles, train_labels, params)
+    eval_inputs = input_fn('eval', eval_articles, eval_labels, params)
     logging.info("- done.")
 
     # Define the models (2 different set of nodes that share weights for train and eval)

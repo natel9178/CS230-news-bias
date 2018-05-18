@@ -2,22 +2,23 @@
 
 import tensorflow as tf
 from numpy import asarray
+import tensorflow.contrib.eager as tfe
 
-def load_words(path_words):
-    return set(line.strip() for line in open(path_words))
+# def load_words(path_words):
+#     return set(line.strip() for line in open(path_words))
 
 def load_glove_embedding(path_txt, path_words):
     embeddings_index = dict()
     f = open(path_txt) # f = open('../data/GloVe/glove.6B.100d.txt')
-    words = load_words(path_words)
+    # words = load_words(path_words)
     for line in f:
         values = line.split()
         word = values[0]
-        if word in words:
-            coefs = asarray(values[1:], dtype='float32')
-            embeddings_index[word] = coefs
+        # if word in words:
+        coefs = asarray(values[1:], dtype='float32')
+        embeddings_index[word] = coefs
     f.close()
-    print('Loaded %s word vectors for %s words in train corpus' % (len(embeddings_index), len(words)))
+    print('Loaded %s word vectors' % len(embeddings_index))
     return embeddings_index
 
 def load_dataset_from_text(path_txt, vocab):
@@ -41,14 +42,13 @@ def load_dataset_from_text(path_txt, vocab):
 
     return dataset
 
-
-def input_fn(mode, sentences, labels, params):
+def input_fn(mode, articles, labels, params):
     """Input function for NER
 
     Args:
         mode: (string) 'train', 'eval' or any other mode you can think of
                      At training, we shuffle the data and have multiple epochs
-        sentences: (tf.Dataset) yielding list of ids of words
+        articles: (tf.Dataset) yielding list of ids of words
         datasets: (tf.Dataset) yielding list of ids of tags
         params: (Params) contains hyperparameters of the model (ex: `params.num_epochs`)
 
@@ -58,23 +58,20 @@ def input_fn(mode, sentences, labels, params):
     buffer_size = params.buffer_size if is_training else 1
 
     # Zip the sentence and the labels together
-    dataset = tf.data.Dataset.zip((sentences, labels))
+    dataset = tf.data.Dataset.zip((articles, labels))
 
-    # Create batches and pad the sentences of different length
-    padded_shapes = ((tf.TensorShape([None]),  # sentence of unknown size
-                      tf.TensorShape([])),     # size(words)
-                     (tf.TensorShape([None]),  # labels of unknown size
-                      tf.TensorShape([])))     # size(tags)
+    # Create batches and pad the articles of different length
+    padded_shapes = ((tf.TensorShape([None]), tf.TensorShape([1])),   # article of unknown size
+                    (1, 1))  # labels of size 1
 
-    padding_values = ((params.id_pad_word,   # sentence padded on the right with id_pad_word
-                       0),                   # size(words) -- unused
-                      (params.id_pad_tag,    # labels padded on the right with id_pad_tag
-                       0))                   # size(tags) -- unused
+
+    padding_values = (params.id_pad_word,   # sentence padded on the right with id_pad_word
+                        None)
 
 
     dataset = (dataset
         .shuffle(buffer_size=buffer_size)
-        .padded_batch(params.batch_size, padded_shapes=padded_shapes, padding_values=padding_values)
+        #.padded_batch(params.batch_size, padded_shapes=padded_shapes) #, padding_values=padding_values)
         .prefetch(1)  # make sure you always have one batch ready to serve
     )
 
@@ -82,12 +79,20 @@ def input_fn(mode, sentences, labels, params):
     iterator = dataset.make_initializable_iterator()
 
     # Query the output of the iterator for input to the model
-    ((sentence, sentence_lengths), (labels, _)) = iterator.get_next()
+    next_element = iterator.get_next() # ((sentence, sentence_lengths), (labels, _))
     init_op = iterator.initializer
+
+    # with tf.Session() as sess:
+    #     sess.run(tf.global_variables_initializer())
+    #     sess.run(tf.tables_initializer(name='init_all_tables'))
+    #     sess.run(init_op)
+    #     for i in range(5):
+    #         a, b = sess.run(next_element)
+    #         print(a)
 
     # Build and return a dictionnary containing the nodes / ops
     inputs = {
-        'sentence': sentence,
+        'articles': sentence,
         'labels': labels,
         'sentence_lengths': sentence_lengths,
         'iterator_init_op': init_op
