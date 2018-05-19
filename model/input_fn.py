@@ -85,8 +85,8 @@ def input_fn(mode, articles, labels, params):
 
 
         dataset = (dataset
-            #.shuffle(buffer_size=buffer_size)
-            .padded_batch(2, padded_shapes=dataset.output_shapes) #, padding_values=padding_values) #.batch(30)
+            .shuffle(buffer_size=buffer_size)
+            .padded_batch(4, padded_shapes=dataset.output_shapes) #, padding_values=padding_values) #.batch(30)
             .prefetch(1)  # make sure you always have one batch ready to serve
         )
 
@@ -97,6 +97,7 @@ def input_fn(mode, articles, labels, params):
     ((article, article_length), labels) = iterator.get_next() # ((sentence, sentence_lengths), (labels, _))
     init_op = iterator.initializer
 
+    # DEBUG TODO: Remove
     # with tf.Session() as sess:
     #     sess.run(tf.global_variables_initializer())
     #     sess.run(tf.tables_initializer(name='init_all_tables'))

@@ -12,14 +12,11 @@ def load_dataset(path_csv, dataset = []):
     use_python3 = sys.version_info[0] >= 3
     with (open(path_csv, encoding="utf8") if use_python3 else open(path_csv)) as f:
         csv_file = csv.reader(f, delimiter=',')
-        #words, tags = [], []
-        # articles, labels = [], []
 
         # Each line of the csv corresponds to one word
         for idx, row in enumerate(csv_file):
             if idx == 0: continue
             e,id,title,publication,author,date,year,month,url,content = row
-            #sentence, word, pos, tag = row
             label = 0
             if publication == "Fox News" or publication == "New York Times":
                 label = 1
@@ -28,17 +25,7 @@ def load_dataset(path_csv, dataset = []):
             else:
                 continue
 
-            #if len(sentence) != 0:
-                #if len(words) > 0:
-                    #assert len(words) == len(tags)
             dataset.append((content, label))
-            # try:
-            #     article, label = str(content), str(label)
-            #     articles.append(article)
-            #     labels.append(label)
-            # except UnicodeDecodeError as e:
-            #     print("An exception was raised, skipping a word: {}".format(e))
-            #     pass
 
     return dataset
 

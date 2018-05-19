@@ -37,7 +37,7 @@ def build_model(mode, inputs, params):
         model = Sequential()
         embedding_layer = Embedding(len(words_list) + 1,
                             EMBEDDING_DIM,
-                            input_length=MAX_SEQUENCE_LENGTH)
+                            input_length=MAX_SEQUENCE_LENGTH) # Model does not yet use glove embeddings for preliminary results
         model.add(embedding_layer)
         model.add(Conv1D(128, 5, activation='relu'))
         model.add(MaxPooling1D(5))
@@ -50,10 +50,6 @@ def build_model(mode, inputs, params):
         model.add(Dense(128, activation='relu'))
         model.add(Dense(1, activation='sigmoid'))
         
-        # # Apply LSTM over the embeddings
-        # lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-        # output, _  = tf.nn.dynamic_rnn(lstm_cell, article, dtype=tf.float32)
-
         # Compute logits from the output of the LSTM
         logits = model(article)
     else:
@@ -139,16 +135,16 @@ def model_fn(mode, inputs, params, reuse=False):
     if is_training:
         model_spec['train_op'] = train_op
 
-    with tf.Session() as sess:
-        K.set_session(sess)
-        # Initialize model variables
-        sess.run(tf.global_variables_initializer())
-        sess.run(train_model_spec['variable_init_op'])
-        sess.run(train_model_spec['iterator_init_op'])
-        a = sess.run(string_tensor)
-        b = sess.run(y_labels)
-        c = sess.run(logits)
+    # with tf.Session() as sess:
+    #     K.set_session(sess)
+    #     # Initialize model variables
+    #     sess.run(tf.global_variables_initializer())
+    #     sess.run(model_spec['variable_init_op'])
+    #     sess.run(model_spec['iterator_init_op'])
+    #     a = sess.run(string_tensor)
+    #     b = sess.run(y_labels)
+    #     c = sess.run(logits)
 
-        d = 1
+    #     d = 1
 
     return model_spec

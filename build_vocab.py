@@ -73,19 +73,6 @@ if __name__ == '__main__':
     size_test_articles = update_vocab(os.path.join(args.data_dir, 'test/articles.txt'), words)
     print("- done.")
 
-    # Build tag vocab with train and test datasets
-    # print("Building tag vocabulary...")
-    # tags = Counter()
-    # size_train_tags = update_vocab(os.path.join(args.data_dir, 'train/labels.txt'), tags)
-    # size_dev_tags = update_vocab(os.path.join(args.data_dir, 'dev/labels.txt'), tags)
-    # size_test_tags = update_vocab(os.path.join(args.data_dir, 'test/labels.txt'), tags)
-    # print("- done.")
-
-    # Assert same number of examples in datasets
-    # assert size_train_articles == size_train_tags
-    # assert size_dev_articles == size_dev_tags
-    # assert size_test_articles == size_test_tags
-
     # Only keep most frequent tokens
     words = [tok for tok, count in words.items() if count >= args.min_count_word]
     # tags = [tok for tok, count in tags.items() if count >= args.min_count_tag]
@@ -106,9 +93,7 @@ if __name__ == '__main__':
         'dev_size': size_dev_articles,
         'test_size': size_test_articles,
         'vocab_size': len(words) + NUM_OOV_BUCKETS,
-        # 'number_of_tags': len(tags),
         'pad_word': PAD_WORD,
-        # 'pad_tag': PAD_TAG,
         'num_oov_buckets': NUM_OOV_BUCKETS
     }
     save_dict_to_json(sizes, os.path.join(args.data_dir, 'dataset_params.json'))
