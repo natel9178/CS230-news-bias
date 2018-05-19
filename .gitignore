@@ -120,3 +120,6 @@ data/
 
 # tf
 *tfevents*
+
+# Checkpoints and metrics
+experiments/base_model/

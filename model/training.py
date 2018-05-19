@@ -72,9 +72,11 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params, res
     best_saver = tf.train.Saver(max_to_keep=1)  # only keep 1 best checkpoint (best on eval)
     begin_at_epoch = 0
 
+    
     with tf.Session() as sess:
         K.set_session(sess)
         # Initialize model variables
+        sess.run(tf.global_variables_initializer())
         sess.run(train_model_spec['variable_init_op'])
         sess.run(train_model_spec['iterator_init_op'])
 

@@ -44,14 +44,16 @@ def load_dataset_from_text(path_txt, vocab):
     Returns:
         dataset: (tf.Dataset) yielding list of ids of tokens for each example
     """
-    # Load txt file, one example per line
-    dataset = tf.data.TextLineDataset(path_txt)
+    
+    with tf.device('/cpu:0'):
+        # Load txt file, one example per line
+        dataset = tf.data.TextLineDataset(path_txt)
 
-    # Convert line into list of tokens, splitting by white space
-    dataset = dataset.map(lambda string: tf.string_split([string]).values)
+        # Convert line into list of tokens, splitting by white space
+        dataset = dataset.map(lambda string: tf.string_split([string]).values)
 
-    # Lookup tokens to return their ids
-    dataset = dataset.map(lambda tokens: (vocab.lookup(tokens), tf.size(tokens)))
+        # Lookup tokens to return their ids
+        dataset = dataset.map(lambda tokens: (vocab.lookup(tokens), tf.size(tokens)))
 
     return dataset
 
@@ -69,24 +71,24 @@ def input_fn(mode, articles, labels, params):
     # Load all the dataset in memory for shuffling is training
     is_training = (mode == 'train')
     buffer_size = params.buffer_size if is_training else 1
+    with tf.device('/cpu:0'):
+        # Zip the sentence and the labels together
+        dataset = tf.data.Dataset.zip((articles, labels))
 
-    # Zip the sentence and the labels together
-    dataset = tf.data.Dataset.zip((articles, labels))
-
-    # Create batches and pad the articles of different length
-    padded_shapes = ((tf.TensorShape([None]), tf.TensorShape([1])),   # article of unknown size
-                    (1, 1))  # labels of size 1
-
-
-    padding_values = (params.id_pad_word,   # sentence padded on the right with id_pad_word
-                        None)
+        # Create batches and pad the articles of different length
+        padded_shapes = ((tf.TensorShape([None]), tf.TensorShape([1])),   # article of unknown size
+                        (1, 1))  # labels of size 1
 
 
-    dataset = (dataset
-        .shuffle(buffer_size=buffer_size)
-        .padded_batch(30, padded_shapes=dataset.output_shapes) #, padding_values=padding_values) #.batch(30)
-        .prefetch(1)  # make sure you always have one batch ready to serve
-    )
+        padding_values = (params.id_pad_word,   # sentence padded on the right with id_pad_word
+                            None)
+
+
+        dataset = (dataset
+            .shuffle(buffer_size=buffer_size)
+            .padded_batch(2, padded_shapes=dataset.output_shapes) #, padding_values=padding_values) #.batch(30)
+            .prefetch(1)  # make sure you always have one batch ready to serve
+        )
 
     # Create initializable iterator from this dataset so that we can reset at each epoch
     iterator = dataset.make_initializable_iterator()
