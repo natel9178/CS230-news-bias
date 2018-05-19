@@ -49,19 +49,7 @@ def build_model(mode, inputs, params):
         model.add(GlobalMaxPooling1D())
         model.add(Dense(128, activation='relu'))
         model.add(Dense(1, activation='sigmoid'))
-
-        # article = embedding_layer(article)
-
-        # article = Conv1D(128, 5, activation='relu')(article)
-        # article = MaxPooling1D(5)(article)
-        # article = Conv1D(128, 5, activation='relu')(article)
-        # article = MaxPooling1D(5)(article)
-        # article = Conv1D(128, 5, activation='relu')(article)
-        # article = MaxPooling1D(35)(article)  # global max pooling
-        # article = Flatten()(article)
-        # article = Dense(128, activation='relu')(article)
-        # preds = Dense(1, activation='sigmoid')(article)
-
+        
         # # Apply LSTM over the embeddings
         # lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
         # output, _  = tf.nn.dynamic_rnn(lstm_cell, article, dtype=tf.float32)
