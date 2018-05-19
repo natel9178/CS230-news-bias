@@ -139,4 +139,16 @@ def model_fn(mode, inputs, params, reuse=False):
     if is_training:
         model_spec['train_op'] = train_op
 
+    with tf.Session() as sess:
+        K.set_session(sess)
+        # Initialize model variables
+        sess.run(tf.global_variables_initializer())
+        sess.run(train_model_spec['variable_init_op'])
+        sess.run(train_model_spec['iterator_init_op'])
+        a = sess.run(string_tensor)
+        b = sess.run(y_labels)
+        c = sess.run(logits)
+
+        d = 1
+
     return model_spec

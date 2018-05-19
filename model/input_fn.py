@@ -85,7 +85,7 @@ def input_fn(mode, articles, labels, params):
 
 
         dataset = (dataset
-            .shuffle(buffer_size=buffer_size)
+            #.shuffle(buffer_size=buffer_size)
             .padded_batch(2, padded_shapes=dataset.output_shapes) #, padding_values=padding_values) #.batch(30)
             .prefetch(1)  # make sure you always have one batch ready to serve
         )
