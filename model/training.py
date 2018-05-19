@@ -80,9 +80,6 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params, res
         sess.run(train_model_spec['variable_init_op'])
         sess.run(train_model_spec['iterator_init_op'])
 
-        a = sess.run(train_model_spec['article'])
-        b = sess.run(train_model_spec['labels'])
-
         # Reload weights from directory if specified
         if restore_from is not None:
             logging.info("Restoring parameters from {}".format(restore_from))
