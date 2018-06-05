@@ -97,7 +97,7 @@ def input_fn(mode, articles, labels, params):
     ((article, article_length), labels) = iterator.get_next() # ((sentence, sentence_lengths), (labels, _))
     init_op = iterator.initializer
 
-    # DEBUG TODO: Remove
+    # # DEBUG TODO: Remove
     # with tf.Session() as sess:
     #     sess.run(tf.global_variables_initializer())
     #     sess.run(tf.tables_initializer(name='init_all_tables'))

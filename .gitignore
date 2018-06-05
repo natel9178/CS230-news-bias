@@ -123,3 +123,4 @@ data/
 
 # Checkpoints and metrics
 experiments/base_model/
+glove*
