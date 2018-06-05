@@ -48,10 +48,12 @@ def build_model(mode, inputs, params):
         # model.add(Flatten())
         model.add(GlobalMaxPooling1D())
         model.add(Dense(128, activation='relu'))
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(1, activation=None))
+        
         
         # Compute logits from the output of the LSTM
         logits = model(article)
+        logits = tf.Print(logits, [tf.nn.sigmoid(logits)])
     else:
         raise NotImplementedError("Unknown model version: {}".format(params.model_version))
 
