@@ -76,17 +76,16 @@ def input_fn(mode, articles, labels, params):
         dataset = tf.data.Dataset.zip((articles, labels))
 
         # Create batches and pad the articles of different length
-        padded_shapes = ((tf.TensorShape([None]), tf.TensorShape([1])),   # article of unknown size
-                        (1, 1))  # labels of size 1
+        padded_shapes = (([10000], []), [])
 
 
         padding_values = (params.id_pad_word,   # sentence padded on the right with id_pad_word
                             None)
 
-
+        
         dataset = (dataset
             .shuffle(buffer_size=buffer_size)
-            .padded_batch(4, padded_shapes=dataset.output_shapes) #, padding_values=padding_values) #.batch(30)
+            .padded_batch(4, padded_shapes=padded_shapes) #, padding_values=padding_values) #.batch(30)
             .prefetch(1)  # make sure you always have one batch ready to serve
         )
 
