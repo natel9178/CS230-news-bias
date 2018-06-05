@@ -53,7 +53,6 @@ def build_model(mode, inputs, params):
         
         # Compute logits from the output of the LSTM
         logits = model(article)
-        logits = tf.Print(logits, [tf.nn.sigmoid(logits)])
     else:
         raise NotImplementedError("Unknown model version: {}".format(params.model_version))
 
@@ -82,7 +81,9 @@ def model_fn(mode, inputs, params, reuse=False):
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
         logits = build_model(mode, inputs, params)
-        predictions = tf.cast(tf.greater(logits,0.5), tf.float32)
+        predictions = tf.cast(tf.greater(tf.sigmoid(logits),0.5), tf.float32)
+        # predictions = tf.Print(predictions, [predictions], "predictions")
+        # predictions = tf.Print(predictions, [tf.sigmoid(logits)], "logits")
 
     string_tensor = tf.string_to_number(labels)
     y_labels = tf.reshape(string_tensor, [-1, 1])
@@ -104,7 +105,7 @@ def model_fn(mode, inputs, params, reuse=False):
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
         metrics = {
-            'accuracy': tf.metrics.accuracy(labels=labels, predictions=tf.as_string(predictions)),
+            'accuracy': tf.metrics.accuracy(labels=tf.string_to_number(labels), predictions=predictions),
             'loss': tf.metrics.mean(loss)
         }
 
