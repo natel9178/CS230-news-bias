@@ -6,6 +6,7 @@ import os
 import sys
 import numpy as np
 import time
+from metrics import mcor,recall,f1,precision
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -14,14 +15,16 @@ from keras.layers import Dense, Input, GlobalMaxPooling1D
 from keras.layers import Conv1D, MaxPooling1D, Embedding, LSTM, Dropout, Activation
 from keras.models import Model
 from keras.callbacks import TensorBoard, ModelCheckpoint
+import keras.backend as K
 
 BASE_DIR = ''
-GLOVE_DIR = os.path.join(BASE_DIR, 'glove.6B')
-TEXT_DATA_DIR = os.path.join(BASE_DIR, '20_newsgroup')
+GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
+TEXT_DATA_DIR = './data/kaggle'
+TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
+MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
-VALIDATION_SPLIT = 0.1
 
 def index_glove_embeddings(fname):
     # first, build index mapping words in the embeddings set
@@ -49,15 +52,75 @@ def load_text_dataset(fname, max_index = 9999999):
             i += 1
     return datas
 
+def create_embedding_layer(word_index):
+    print('Preparing embedding matrix.')
+
+    # prepare embedding matrix
+    num_words = min(MAX_NUM_WORDS, len(word_index) + 1)
+    embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
+    for word, i in word_index.items():
+        if i >= MAX_NUM_WORDS:
+            continue
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            # words not found in embedding index will be all-zeros.
+            embedding_matrix[i] = embedding_vector
+
+    # load pre-trained word embeddings into an Embedding layer
+    # note that we set trainable = False so as to keep the embeddings fixed
+    return Embedding(num_words, EMBEDDING_DIM,
+                                weights=[embedding_matrix],
+                                input_length=MAX_SEQUENCE_LENGTH,
+                                trainable=False)
+
+def model_fn(model_type, embedding_layer):
+    print('Creating model.')
+    sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
+    embedded_sequences = embedding_layer(sequence_input)
+    if model_type == 'lstm':
+        X = LSTM(128, return_sequences=True)(embedded_sequences)
+        X = Dropout(0.5)(X)
+        X = LSTM(128, return_sequences=False)(X)
+        X = Dropout(0.5)(X)
+        X = Dense(2)(X)
+        preds = Activation('softmax')(X)
+    else:
+        x = Conv1D(128, 5, activation='relu')(embedded_sequences)
+        x = MaxPooling1D(5)(x)
+        x = Conv1D(128, 5, activation='relu')(x)
+        x = GlobalMaxPooling1D()(x)
+        x = Dense(128, activation='relu')(x)
+        preds = Dense(2, activation='softmax')(x)
+
+    return Model(sequence_input, preds)
+
+def train_and_evaluate(model):
+    print('Training model.')
+    # if os.path.exists(MODEL_CP_DIR):
+        # print('Loading previous model weights.')
+        # model.load_weights(MODEL_CP_DIR)
+    
+    model.compile(loss='categorical_crossentropy',
+                optimizer='adam',
+                metrics=['acc'])
+
+    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}".format(time.time())))
+    checkpoint = ModelCheckpoint(MODEL_CP_DIR, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+
+    model.fit(x_train, y_train,
+            batch_size=128,
+            epochs=10,
+            validation_data=(x_dev, y_dev), verbose=1, callbacks=[tensorboard, checkpoint])
+
 if __name__ == '__main__':
     print('Indexing word vectors.')
-    embeddings_index = index_glove_embeddings('./basic_model/glove.6B.100d.txt')
+    embeddings_index = index_glove_embeddings(GLOVE_DIR)
 
     print('Processing text dataset')
-    x_train = load_text_dataset('data/kaggle/train/articles.txt')
-    y_train = load_text_dataset('data/kaggle/train/tags.txt')
-    x_dev = load_text_dataset('data/kaggle/dev/articles.txt', 3429)
-    y_dev = load_text_dataset('data/kaggle/dev/tags.txt', 3429)
+    x_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/articles.txt'))
+    y_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/tags.txt'))
+    x_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/articles.txt'), 3429)
+    y_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/tags.txt'), 3429)
     print('Found %s texts.' % len(x_train))
 
     tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
@@ -77,60 +140,7 @@ if __name__ == '__main__':
     print('Shape of data tensor dev:', x_dev.shape)
     print('Shape of label tensor dev:', y_dev.shape)
 
-    print('Preparing embedding matrix.')
+    embedding_layer = create_embedding_layer(word_index)
+    model = model_fn('conv', embedding_layer)
 
-    # prepare embedding matrix
-    num_words = min(MAX_NUM_WORDS, len(word_index) + 1)
-    embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
-    for word, i in word_index.items():
-        if i >= MAX_NUM_WORDS:
-            continue
-        embedding_vector = embeddings_index.get(word)
-        if embedding_vector is not None:
-            # words not found in embedding index will be all-zeros.
-            embedding_matrix[i] = embedding_vector
-
-    # load pre-trained word embeddings into an Embedding layer
-    # note that we set trainable = False so as to keep the embeddings fixed
-    embedding_layer = Embedding(num_words,
-                                EMBEDDING_DIM,
-                                weights=[embedding_matrix],
-                                input_length=MAX_SEQUENCE_LENGTH,
-                                trainable=False)
-
-    print('Training model.')
-
-    # train a 1D convnet with global maxpooling
-    sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-    embedded_sequences = embedding_layer(sequence_input)
-    x = Conv1D(128, 5, activation='relu')(embedded_sequences)
-    x = MaxPooling1D(5)(x)
-    x = Conv1D(128, 5, activation='relu')(x)
-    x = GlobalMaxPooling1D()(x)
-    x = Dense(128, activation='relu')(x)
-    preds = Dense(2, activation='softmax')(x)
-    # X = LSTM(128, return_sequences=True)(embedded_sequences)
-    # X = Dropout(0.5)(X)
-    # X = LSTM(128, return_sequences=False)(X)
-    # X = Dropout(0.5)(X)
-    # X = Dense(2)(X)
-    # preds = Activation('softmax')(X)
-
-
-    model = Model(sequence_input, preds)
-    if os.path.exists("experiments/weights/weights.best.hdf5"):
-        print('Loading previous model weights.')
-        model.load_weights("experiments/weights/weights.best.hdf5")
-    
-    model.compile(loss='categorical_crossentropy',
-                optimizer='adam',
-                metrics=['acc'])
-
-    tensorboard = TensorBoard(log_dir="experiments/tensorboard/{}".format(time.time()))
-    filepath="experiments/weights/weights.best.hdf5"
-    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-
-    model.fit(x_train, y_train,
-            batch_size=128,
-            epochs=10,
-            validation_data=(x_dev, y_dev), verbose=1, callbacks=[tensorboard, checkpoint])
+    train_and_evaluate(model)
