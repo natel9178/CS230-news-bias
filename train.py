@@ -79,9 +79,9 @@ def model_fn(model_type, embedding_layer):
     embedded_sequences = embedding_layer(sequence_input)
     if model_type == 'lstm':
         X = LSTM(128, return_sequences=True)(embedded_sequences)
-        X = Dropout(0.5)(X)
+        X = Dropout(0.2)(X)
         X = LSTM(128, return_sequences=False)(X)
-        X = Dropout(0.5)(X)
+        X = Dropout(0.2)(X)
         X = Dense(1)(X)
         preds = Activation('sigmoid')(X)
     else:
