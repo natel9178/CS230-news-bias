@@ -96,9 +96,9 @@ def model_fn(model_type, embedding_layer):
 
 def train_and_evaluate(model):
     print('Training model.')
-    # if os.path.exists(MODEL_CP_DIR):
-        # print('Loading previous model weights.')
-        # model.load_weights(MODEL_CP_DIR)
+    if os.path.exists(MODEL_CP_DIR):
+        print('Loading previous model weights.')
+        model.load_weights(MODEL_CP_DIR)
     
     model.compile(loss='binary_crossentropy',
                 optimizer='adam',
