@@ -1,104 +1,136 @@
 """Train the model"""
 
-import argparse
-import logging
+from __future__ import print_function
+
 import os
+import sys
+import numpy as np
+import time
 
-import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from keras.utils import to_categorical
+from keras.layers import Dense, Input, GlobalMaxPooling1D
+from keras.layers import Conv1D, MaxPooling1D, Embedding, LSTM, Dropout, Activation
+from keras.models import Model
+from keras.callbacks import TensorBoard, ModelCheckpoint
 
-from model.utils import Params
-from model.utils import set_logger
-from model.training import train_and_evaluate
-from model.input_fn import input_fn
-from model.input_fn import load_dataset_from_text
-from model.input_fn import load_glove_embedding
-from model.input_fn import generate_embedding_matrix
-from model.input_fn import load_words
-from model.model_fn import model_fn
+BASE_DIR = ''
+GLOVE_DIR = os.path.join(BASE_DIR, 'glove.6B')
+TEXT_DATA_DIR = os.path.join(BASE_DIR, '20_newsgroup')
+MAX_SEQUENCE_LENGTH = 1000
+MAX_NUM_WORDS = 20000
+EMBEDDING_DIM = 100
+VALIDATION_SPLIT = 0.1
 
+def index_glove_embeddings(fname):
+    # first, build index mapping words in the embeddings set
+    # to their embedding vector
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--model_dir', default='experiments/base_model',
-                    help="Directory containing params.json")
-parser.add_argument('--data_dir', default='data/kaggle', help="Directory containing the dataset")
-parser.add_argument('--restore_dir', default=None,
-                    help="Optional, directory containing weights to reload before training")
+    embeddings_index = {}
+    with open(fname) as f:
+        for line in f:
+            values = line.split()
+            word = values[0]
+            coefs = np.asarray(values[1:], dtype='float32')
+            embeddings_index[word] = coefs
 
+    print('Found %s word vectors.' % len(embeddings_index))
+    return embeddings_index
+
+def load_text_dataset(fname, max_index = 9999999):
+    datas = []  # list of text samples
+    i = 0
+    with open(fname) as f:
+        for line in f:
+            datas.append(line)
+            if i >= max_index:
+                break
+            i += 1
+    return datas
 
 if __name__ == '__main__':
-    # Set the random seed for the whole graph for reproductible experiments
-    # tfe.enable_eager_execution()
-    tf.set_random_seed(230)
+    print('Indexing word vectors.')
+    embeddings_index = index_glove_embeddings('./basic_model/glove.6B.100d.txt')
+
+    print('Processing text dataset')
+    x_train = load_text_dataset('data/kaggle/train/articles.txt')
+    y_train = load_text_dataset('data/kaggle/train/tags.txt')
+    x_dev = load_text_dataset('data/kaggle/dev/articles.txt', 3429)
+    y_dev = load_text_dataset('data/kaggle/dev/tags.txt', 3429)
+    print('Found %s texts.' % len(x_train))
+
+    tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
+    tokenizer.fit_on_texts(x_train + x_dev)
+    x_train = tokenizer.texts_to_sequences(x_train)
+    x_train = pad_sequences(x_train, maxlen=MAX_SEQUENCE_LENGTH)
+    x_dev = tokenizer.texts_to_sequences(x_dev)
+    x_dev = pad_sequences(x_dev, maxlen=MAX_SEQUENCE_LENGTH)
+
+    word_index = tokenizer.word_index
+    print('Found %s unique tokens.' % len(word_index))
+
+    y_train = to_categorical(np.asarray(y_train))
+    y_dev = to_categorical(np.asarray(y_dev))
+    print('Shape of data tensor:', x_train.shape)
+    print('Shape of label tensor:', y_train.shape)
+    print('Shape of data tensor dev:', x_dev.shape)
+    print('Shape of label tensor dev:', y_dev.shape)
+
+    print('Preparing embedding matrix.')
+
+    # prepare embedding matrix
+    num_words = min(MAX_NUM_WORDS, len(word_index) + 1)
+    embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
+    for word, i in word_index.items():
+        if i >= MAX_NUM_WORDS:
+            continue
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            # words not found in embedding index will be all-zeros.
+            embedding_matrix[i] = embedding_vector
+
+    # load pre-trained word embeddings into an Embedding layer
+    # note that we set trainable = False so as to keep the embeddings fixed
+    embedding_layer = Embedding(num_words,
+                                EMBEDDING_DIM,
+                                weights=[embedding_matrix],
+                                input_length=MAX_SEQUENCE_LENGTH,
+                                trainable=False)
+
+    print('Training model.')
+
+    # train a 1D convnet with global maxpooling
+    sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
+    embedded_sequences = embedding_layer(sequence_input)
+    x = Conv1D(128, 5, activation='relu')(embedded_sequences)
+    x = MaxPooling1D(5)(x)
+    x = Conv1D(128, 5, activation='relu')(x)
+    x = GlobalMaxPooling1D()(x)
+    x = Dense(128, activation='relu')(x)
+    preds = Dense(2, activation='softmax')(x)
+    # X = LSTM(128, return_sequences=True)(embedded_sequences)
+    # X = Dropout(0.5)(X)
+    # X = LSTM(128, return_sequences=False)(X)
+    # X = Dropout(0.5)(X)
+    # X = Dense(2)(X)
+    # preds = Activation('softmax')(X)
+
+
+    model = Model(sequence_input, preds)
+    if os.path.exists("experiments/weights/weights.best.hdf5"):
+        print('Loading previous model weights.')
+        model.load_weights("experiments/weights/weights.best.hdf5")
     
+    model.compile(loss='categorical_crossentropy',
+                optimizer='adam',
+                metrics=['acc'])
 
-    logging.info("Loading Params...")
-    # Load the parameters from the experiment params.json file in model_dir
-    args = parser.parse_args()
-    json_path = os.path.join(args.model_dir, 'params.json')
-    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
-    params = Params(json_path)
+    tensorboard = TensorBoard(log_dir="experiments/tensorboard/{}".format(time.time()))
+    filepath="experiments/weights/weights.best.hdf5"
+    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
-    # Load the parameters from the dataset, that gives the size etc. into params
-    json_path = os.path.join(args.data_dir, 'dataset_params.json')
-    assert os.path.isfile(json_path), "No json file found at {}, run build_vocab.py".format(json_path)
-    params.update(json_path)
-    num_oov_buckets = params.num_oov_buckets # number of buckets for unknown words
-
-    # Check that we are not overwriting some previous experiment
-    # Comment these lines if you are developing your model and don't care about overwritting
-    # model_dir_has_best_weights = os.path.isdir(os.path.join(args.model_dir, "best_weights"))
-    # overwritting = model_dir_has_best_weights and args.restore_dir is None
-    # assert not overwritting, "Weights found in model_dir, aborting to avoid overwrite"
-
-    # Set the logger
-    set_logger(os.path.join(args.model_dir, 'train.log'))
-    
-    # Get paths for vocabularies and dataset
-    path_words = os.path.join(args.data_dir, 'words.txt')
-    # path_tags = os.path.join(args.data_dir, 'tags.txt')
-    path_train_articles = os.path.join(args.data_dir, 'train/articles.txt')
-    path_train_labels = os.path.join(args.data_dir, 'train/tags.txt')
-    path_eval_articles = os.path.join(args.data_dir, 'dev/articles.txt')
-    path_eval_labels = os.path.join(args.data_dir, 'dev/tags.txt')
-    path_glove_database = os.path.join(args.data_dir, '../GloVe/glove.6B.100d.txt')
-
-    # Load Vocabularies
-    words = tf.contrib.lookup.index_table_from_file(path_words, num_oov_buckets=num_oov_buckets)
-    words_list = load_words(path_words)
-
-    # Create the input data pipeline
-    logging.info("Creating the datasets...")
-    train_articles = load_dataset_from_text(path_train_articles, words)
-    train_labels = tf.data.TextLineDataset(path_train_labels)
-    eval_articles = load_dataset_from_text(path_eval_articles, words)
-    eval_labels = tf.data.TextLineDataset(path_eval_labels)
-
-    # Specify other parameters for the dataset and the model
-    params.eval_size = params.dev_size
-    params.buffer_size = params.train_size # buffer size for shuffling
-    params.id_pad_word = words.lookup(tf.constant(params.pad_word))
-
-    # Create the two iterators over the two datasets
-    train_inputs = input_fn('train', train_articles, train_labels, params)
-    eval_inputs = input_fn('eval', eval_articles, eval_labels, params)
-    logging.info("- done.")
-
-    # Load Glove Vectors
-    glove_embedding = load_glove_embedding(path_glove_database)
-    embedding_matrix = generate_embedding_matrix(words_list, glove_embedding)
-
-    train_inputs['glove'] = embedding_matrix
-    eval_inputs['glove'] = embedding_matrix
-    train_inputs['words_list'] = words_list
-    eval_inputs['words_list'] = words_list
-
-    # Define the models (2 different set of nodes that share weights for train and eval)
-    logging.info("Creating the model...")
-    train_model_spec = model_fn('train', train_inputs, params)
-    eval_model_spec = model_fn('eval', eval_inputs, params, reuse=True)
-    logging.info("- done.")
-
-    # Train the model
-    logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
-    train_and_evaluate(train_model_spec, eval_model_spec, args.model_dir, params, args.restore_dir)
+    model.fit(x_train, y_train,
+            batch_size=128,
+            epochs=10,
+            validation_data=(x_dev, y_dev), verbose=1, callbacks=[tensorboard, checkpoint])

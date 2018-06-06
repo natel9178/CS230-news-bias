@@ -3,6 +3,7 @@
 import csv
 import os
 import sys
+import numpy as np
 
 csv.field_size_limit(sys.maxsize)
 
@@ -71,6 +72,8 @@ if __name__ == "__main__":
     dataset = load_dataset(path_dataset3, dataset)
     print("- done.")
 
+    np.random.shuffle(dataset)
+
     # Split the dataset into train, dev and split (dummy split with no shuffle)
     train_dataset = dataset[:int(0.7*len(dataset))]
     dev_dataset = dataset[int(0.7*len(dataset)) : int(0.85*len(dataset))]
@@ -80,4 +83,3 @@ if __name__ == "__main__":
     save_dataset(train_dataset, 'data/kaggle/train')
     save_dataset(dev_dataset, 'data/kaggle/dev')
     save_dataset(test_dataset, 'data/kaggle/test')
-    save_dataset(dataset, 'data/kaggle/glove')
