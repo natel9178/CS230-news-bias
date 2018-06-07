@@ -142,6 +142,7 @@ def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_
             validation_data=(x_dev, y_dev), verbose=1, callbacks=[tensorboard, checkpoint])
 
 def train(MODEL, num_layers):
+    MODEL_FINAL_DIR = '{}{}{}{}'.format('experiments/weights/',num_layers,MODEL,'_weights.final.hdf5')
     print('=========================================')
     print('Reloading for next test suite with {} Model and {} layers'.format(MODEL, num_layers))
     print('Indexing word vectors.')
@@ -187,4 +188,6 @@ def train(MODEL, num_layers):
     print("Acheived result on test set - %s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 if __name__ == '__main__':
-    train('conv', 2)
+    for suite in TESTS:
+        model, num_layers = suite
+        train(model, num_layers)
