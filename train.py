@@ -79,28 +79,28 @@ def model_fn(model_type, embedding_layer):
     embedded_sequences = embedding_layer(sequence_input)
     if model_type == 'lstm':
         X = LSTM(128, return_sequences=True)(embedded_sequences)
-        X = Dropout(0.5)(X)
+        X = Dropout(0.2)(X)
         X = LSTM(128, return_sequences=False)(X)
-        X = Dropout(0.5)(X)
-        X = Dense(2)(X)
-        preds = Activation('softmax')(X)
+        X = Dropout(0.2)(X)
+        X = Dense(1)(X)
+        preds = Activation('sigmoid')(X)
     else:
         x = Conv1D(128, 5, activation='relu')(embedded_sequences)
         x = MaxPooling1D(5)(x)
         x = Conv1D(128, 5, activation='relu')(x)
         x = GlobalMaxPooling1D()(x)
         x = Dense(128, activation='relu')(x)
-        preds = Dense(2, activation='softmax')(x)
+        preds = Dense(1, activation='sigmoid')(x)
 
     return Model(sequence_input, preds)
 
 def train_and_evaluate(model):
     print('Training model.')
-    # if os.path.exists(MODEL_CP_DIR):
-        # print('Loading previous model weights.')
-        # model.load_weights(MODEL_CP_DIR)
+    if os.path.exists(MODEL_CP_DIR):
+        print('Loading previous model weights.')
+        model.load_weights(MODEL_CP_DIR)
     
-    model.compile(loss='categorical_crossentropy',
+    model.compile(loss='binary_crossentropy',
                 optimizer='adam',
                 metrics=['acc'])
 
@@ -119,8 +119,8 @@ if __name__ == '__main__':
     print('Processing text dataset')
     x_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/articles.txt'))
     y_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/tags.txt'))
-    x_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/articles.txt'), 3429)
-    y_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/tags.txt'), 3429)
+    x_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/articles.txt'))
+    y_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/tags.txt'))
     print('Found %s texts.' % len(x_train))
 
     tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
@@ -133,14 +133,14 @@ if __name__ == '__main__':
     word_index = tokenizer.word_index
     print('Found %s unique tokens.' % len(word_index))
 
-    y_train = to_categorical(np.asarray(y_train))
-    y_dev = to_categorical(np.asarray(y_dev))
+    y_train = np.asarray(y_train)
+    y_dev = np.asarray(y_dev)
     print('Shape of data tensor:', x_train.shape)
     print('Shape of label tensor:', y_train.shape)
     print('Shape of data tensor dev:', x_dev.shape)
     print('Shape of label tensor dev:', y_dev.shape)
 
     embedding_layer = create_embedding_layer(word_index)
-    model = model_fn('conv', embedding_layer)
+    model = model_fn('lstm', embedding_layer)
 
     train_and_evaluate(model)
