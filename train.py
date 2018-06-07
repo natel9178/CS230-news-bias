@@ -29,8 +29,12 @@ MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
 MODEL = 'conv'
+
+NUM_CONV_LAYERS = 2
+
 LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
-CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
+#CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
+CONV_CP_DIR = '{}{}{}'.format('experiments/weights/',NUM_CONV_LAYERS,'conv_weights.best.hdf5')
 LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
 CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
 
@@ -94,9 +98,8 @@ def model_fn(model_type, embedding_layer):
         X = Dense(2)(X)
         preds = Activation('softmax')(X)
     else:
-        num_conv_layers = 2
         x = embedded_sequences
-        for i in range(num_conv_layers-1):
+        for i in range(NUM_CONV_LAYERS-1):
             x = Conv1D(128, 5, activation='relu')(x)
             x = MaxPooling1D(5)(x)
         # x = Conv1D(128, 5, activation='relu')(embedded_sequences)
