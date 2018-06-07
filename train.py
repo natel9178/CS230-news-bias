@@ -59,7 +59,7 @@ def load_text_dataset(fname, max_index = 9999999):
             i += 1
     return datas
 
-def create_embedding_layer(word_index):
+def create_embedding_layer(word_index, embeddings_index):
     print('Preparing embedding matrix.')
 
     # prepare embedding matrix
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     print('Shape of data tensor dev:', x_dev.shape)
     print('Shape of label tensor dev:', y_dev.shape)
 
-    embedding_layer = create_embedding_layer(word_index)
+    embedding_layer = create_embedding_layer(word_index, embeddings_index)
     model = model_fn(MODEL, embedding_layer)
 
     train_and_evaluate(model)
