@@ -17,6 +17,8 @@ from keras.models import Model
 from keras.callbacks import TensorBoard, ModelCheckpoint
 import keras.backend as K
 
+from time import localtime, strftime
+
 BASE_DIR = ''
 GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
 TEXT_DATA_DIR = './data/kaggle'
@@ -115,7 +117,9 @@ def train_and_evaluate(model):
                 optimizer='adam',
                 metrics=['acc'])
 
-    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}".format(time.time())))
+
+
+    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}".format(MODEL,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
     checkpoint = ModelCheckpoint(MODEL_CP_DIR, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     model.fit(x_train, y_train,
