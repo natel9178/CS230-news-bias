@@ -17,90 +17,70 @@ from keras.models import Model
 from keras.callbacks import TensorBoard, ModelCheckpoint
 import keras.backend as K
 
-from train import MODEL
+from train import *
 
 from keras.models import load_model
 
-BASE_DIR = ''
-GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
-TEXT_DATA_DIR = './data/kaggle'
-TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
-#MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
-MAX_SEQUENCE_LENGTH = 1000
-MAX_NUM_WORDS = 20000
-EMBEDDING_DIM = 100
-LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
-CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
-#MODEL = 'lstm'
+# BASE_DIR = ''
+# GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
+# TEXT_DATA_DIR = './data/kaggle'
+# TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
+# #MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
+# MAX_SEQUENCE_LENGTH = 1000
+# MAX_NUM_WORDS = 20000
+# EMBEDDING_DIM = 100
+# LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
+# CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
+# #MODEL = 'lstm'
 
 
-def index_glove_embeddings(fname):
-    # first, build index mapping words in the embeddings set
-    # to their embedding vector
+# def index_glove_embeddings(fname):
+#     # first, build index mapping words in the embeddings set
+#     # to their embedding vector
 
-    embeddings_index = {}
-    with open(fname) as f:
-        for line in f:
-            values = line.split()
-            word = values[0]
-            coefs = np.asarray(values[1:], dtype='float32')
-            embeddings_index[word] = coefs
+#     embeddings_index = {}
+#     with open(fname) as f:
+#         for line in f:
+#             values = line.split()
+#             word = values[0]
+#             coefs = np.asarray(values[1:], dtype='float32')
+#             embeddings_index[word] = coefs
 
-    print('Found %s word vectors.' % len(embeddings_index))
-    return embeddings_index
+#     print('Found %s word vectors.' % len(embeddings_index))
+#     return embeddings_index
 
-def load_text_dataset(fname, max_index = 9999999):
-    datas = []  # list of text samples
-    i = 0
-    with open(fname) as f:
-        for line in f:
-            datas.append(line)
-            if i >= max_index:
-                break
-            i += 1
-    return datas
+# def load_text_dataset(fname, max_index = 9999999):
+#     datas = []  # list of text samples
+#     i = 0
+#     with open(fname) as f:
+#         for line in f:
+#             datas.append(line)
+#             if i >= max_index:
+#                 break
+#             i += 1
+#     return datas
 
-def create_embedding_layer(word_index):
-    print('Preparing embedding matrix.')
+# def create_embedding_layer(word_index):
+#     print('Preparing embedding matrix.')
 
-    # prepare embedding matrix
-    num_words = min(MAX_NUM_WORDS, len(word_index) + 1)
-    embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
-    for word, i in word_index.items():
-        if i >= MAX_NUM_WORDS:
-            continue
-        embedding_vector = embeddings_index.get(word)
-        if embedding_vector is not None:
-            # words not found in embedding index will be all-zeros.
-            embedding_matrix[i] = embedding_vector
+#     # prepare embedding matrix
+#     num_words = min(MAX_NUM_WORDS, len(word_index) + 1)
+#     embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
+#     for word, i in word_index.items():
+#         if i >= MAX_NUM_WORDS:
+#             continue
+#         embedding_vector = embeddings_index.get(word)
+#         if embedding_vector is not None:
+#             # words not found in embedding index will be all-zeros.
+#             embedding_matrix[i] = embedding_vector
 
-    # load pre-trained word embeddings into an Embedding layer
-    # note that we set trainable = False so as to keep the embeddings fixed
-    return Embedding(num_words, EMBEDDING_DIM,
-                                weights=[embedding_matrix],
-                                input_length=MAX_SEQUENCE_LENGTH,
-                                trainable=False)
+#     # load pre-trained word embeddings into an Embedding layer
+#     # note that we set trainable = False so as to keep the embeddings fixed
+#     return Embedding(num_words, EMBEDDING_DIM,
+#                                 weights=[embedding_matrix],
+#                                 input_length=MAX_SEQUENCE_LENGTH,
+#                                 trainable=False)
 
-def model_fn(model_type, embedding_layer):
-    print('Creating model.')
-    sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-    embedded_sequences = embedding_layer(sequence_input)
-    if model_type == 'lstm':
-        X = LSTM(128, return_sequences=True)(embedded_sequences)
-        X = Dropout(0.2)(X)
-        X = LSTM(128, return_sequences=False)(X)
-        X = Dropout(0.2)(X)
-        X = Dense(1)(X)
-        preds = Activation('sigmoid')(X)
-    else:
-        x = Conv1D(128, 5, activation='relu')(embedded_sequences)
-        x = MaxPooling1D(5)(x)
-        x = Conv1D(128, 5, activation='relu')(x)
-        x = GlobalMaxPooling1D()(x)
-        x = Dense(128, activation='relu')(x)
-        preds = Dense(1, activation='sigmoid')(x)
-
-    return Model(sequence_input, preds)
 
 if __name__ == '__main__':
     print('Indexing word vectors.')
@@ -123,12 +103,7 @@ if __name__ == '__main__':
     y_test = np.asarray(y_test)
 
     embedding_layer = create_embedding_layer(word_index)
-    #model = model_fn(MODEL, embedding_layer)
     
-
-    #model.compile(loss='binary_crossentropy',
-    #            optimizer='adam',
-    #            metrics=['acc'])
     if(MODEL == 'lstm'):
         MODEL_FINAL_DIR = LSTM_FINAL_DIR
     elif(MODEL == 'conv'):
