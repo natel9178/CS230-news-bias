@@ -116,7 +116,7 @@ if __name__ == '__main__':
     model = model_fn('lstm', embedding_layer)
 
     scores = model.evaluate(x_test, y_test, verbose=1)
-     if os.path.exists(MODEL_CP_DIR):
+    if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
         model.load_weights(MODEL_CP_DIR)
     else:
