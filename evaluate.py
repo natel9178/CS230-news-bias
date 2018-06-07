@@ -19,6 +19,8 @@ import keras.backend as K
 
 from train import MODEL
 
+from keras.models import load_model
+
 BASE_DIR = ''
 GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
 TEXT_DATA_DIR = './data/kaggle'
@@ -119,18 +121,20 @@ if __name__ == '__main__':
     y_test = np.asarray(y_test)
 
     embedding_layer = create_embedding_layer(word_index)
-    model = model_fn(MODEL, embedding_layer)
+    #model = model_fn(MODEL, embedding_layer)
+    
 
-    model.compile(loss='binary_crossentropy',
+    #model.compile(loss='binary_crossentropy',
                 optimizer='adam',
                 metrics=['acc'])
     if(MODEL == 'lstm'):
-        MODEL_CP_DIR = LSTM_FINAL_DIR
+        MODEL_FINAL_DIR = LSTM_FINAL_DIR
     elif(MODEL == 'conv'):
-        MODEL_CP_DIR = CONV_FINAL_DIR
+        MODEL_FINAL_DIR = CONV_FINAL_DIR
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
-        model.load_weights(MODEL_CP_DIR)
+        #model.load_weights(MODEL_CP_DIR)
+        model = load_model(MODEL_FINAL_DIR)
     else:
         print('Model is blank')
         exit
