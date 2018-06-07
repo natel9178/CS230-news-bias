@@ -147,7 +147,7 @@ if __name__ == '__main__':
     print('Shape of label tensor dev:', y_dev.shape)
 
     embedding_layer = create_embedding_layer(word_index)
-    model = model_fn('lstm', embedding_layer)
+    model = model_fn('conv', embedding_layer)
 
     train_and_evaluate(model)
 
