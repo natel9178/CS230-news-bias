@@ -100,14 +100,14 @@ if __name__ == '__main__':
     word_index = tokenizer.word_index
     print('Found %s unique tokens.' % len(word_index))
 
-    y_test = np.asarray(y_test)
+    y_test = to_categorical(np.asarray(y_test))
 
     embedding_layer = create_embedding_layer(word_index, embeddings_index)
     
-    if(MODEL == 'lstm'):
-        MODEL_FINAL_DIR = LSTM_FINAL_DIR
-    elif(MODEL == 'conv'):
-        MODEL_FINAL_DIR = CONV_FINAL_DIR
+    # if(MODEL == 'lstm'):
+    #     MODEL_FINAL_DIR = LSTM_FINAL_DIR
+    # elif(MODEL == 'conv'):
+    #     MODEL_FINAL_DIR = CONV_FINAL_DIR
     if os.path.exists(MODEL_FINAL_DIR):
         print('Loading previous model weights.')
         #model.load_weights(MODEL_CP_DIR)

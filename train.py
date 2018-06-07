@@ -12,7 +12,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from keras.layers import Dense, Input, GlobalMaxPooling1D
-from keras.layers import Conv1D, MaxPooling1D, Embedding, LSTM, Dropout, Activation
+from keras.layers import Conv1D, MaxPooling1D, Embedding, LSTM, Dropout, Activation, Bidirectional
 from keras.models import Model
 from keras.callbacks import TensorBoard, ModelCheckpoint
 import keras.backend as K
@@ -28,11 +28,17 @@ TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
-MODEL = 'conv'
-LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
-CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
-LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
-CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
+
+NUM_CLASSES = '3_class_'
+
+TESTS = [('conv', 1), ('conv', 2), ('conv', 3), ('conv', 4), ('lstm', 1), ('lstm', 2), ('lstm', 3), ('bidirectional', 1), ('bidirectional', 2), ('bidirectional', 3)]
+#MODEL = 'bidirectional'
+
+# LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
+# CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
+# CONV_CP_DIR = '{}{}{}'.format('experiments/weights/',NUM_LAYERS,'conv_weights.best.hdf5')
+# LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
+# CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
 
 
 def index_glove_embeddings(fname):
@@ -82,33 +88,46 @@ def create_embedding_layer(word_index, embeddings_index):
                                 input_length=MAX_SEQUENCE_LENGTH,
                                 trainable=False)
 
-def model_fn(model_type, embedding_layer):
+def model_fn(model_type, embedding_layer, num_layers = 2):
     print('Creating model.')
     sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
     embedded_sequences = embedding_layer(sequence_input)
     if model_type == 'lstm':
-        X = LSTM(128, return_sequences=True)(embedded_sequences)
-        X = Dropout(0.2)(X)
+        X = embedded_sequences
+        for i in range(num_layers-1):
+            X = LSTM(128, return_sequences=True)(X)
+            X = Dropout(0.2)(X)
         X = LSTM(128, return_sequences=False)(X)
         X = Dropout(0.2)(X)
-        X = Dense(2)(X)
+        X = Dense(3)(X)
         preds = Activation('softmax')(X)
-    else:
-        x = Conv1D(128, 5, activation='relu')(embedded_sequences)
-        x = MaxPooling1D(5)(x)
+    elif model_type == 'conv':
+        x = embedded_sequences
+        for i in range(num_layers-1):
+            x = Conv1D(128, 5, activation='relu')(x)
+            x = MaxPooling1D(5)(x)
         x = Conv1D(128, 5, activation='relu')(x)
         x = GlobalMaxPooling1D()(x)
         x = Dense(128, activation='relu')(x)
-        preds = Dense(2, activation='softmax')(x)
+        preds = Dense(3, activation='softmax')(x)
+    elif model_type == 'bidirectional':
+        X = embedded_sequences
+        for i in range(num_layers-1):
+            X = Bidirectional(LSTM(128, return_sequences=True))(X)
+            X = Dropout(0.2)(X)
+        X = Bidirectional(LSTM(128, return_sequences=False))(X)
+        X = Dropout(0.2)(X)
+        X = Dense(3)(X)
+        preds = Activation('softmax')(X)
 
     return Model(sequence_input, preds)
 
-def train_and_evaluate(model):
+def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_type):
     print('Training model.')
-    if(MODEL == 'lstm'):
-        MODEL_CP_DIR = LSTM_CP_DIR
-    elif(MODEL == 'conv'):
-        MODEL_CP_DIR = CONV_CP_DIR
+
+    MODEL_CP_DIR = '{}{}{}{}{}'.format('experiments/weights/',NUM_CLASSES,num_layers,model_type,'_weights.best.hdf5')
+    MODEL_FINAL_DIR = '{}{}{}{}{}'.format('experiments/weights/',NUM_CLASSES,num_layers,model_type,'_weights.final.hdf5')
+
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
         model.load_weights(MODEL_CP_DIR)
@@ -117,9 +136,7 @@ def train_and_evaluate(model):
                 optimizer='adam',
                 metrics=['acc'])
 
-
-
-    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}".format(MODEL,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
+    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}{}{}".format(NUM_CLASSES,num_layers,model_type,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
     checkpoint = ModelCheckpoint(MODEL_CP_DIR, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     model.fit(x_train, y_train,
@@ -127,7 +144,10 @@ def train_and_evaluate(model):
             epochs=10,
             validation_data=(x_dev, y_dev), verbose=1, callbacks=[tensorboard, checkpoint])
 
-if __name__ == '__main__':
+def train(MODEL, num_layers):
+    MODEL_FINAL_DIR = '{}{}{}{}{}'.format('experiments/weights/',NUM_CLASSES,num_layers,MODEL,'_weights.final.hdf5')
+    print('=========================================')
+    print('Reloading for next test suite with {} Model and {} layers'.format(MODEL, num_layers))
     print('Indexing word vectors.')
     embeddings_index = index_glove_embeddings(GLOVE_DIR)
 
@@ -161,17 +181,16 @@ if __name__ == '__main__':
     print('Shape of label tensor dev:', y_dev.shape)
 
     embedding_layer = create_embedding_layer(word_index, embeddings_index)
-    model = model_fn(MODEL, embedding_layer)
+    model = model_fn(MODEL, embedding_layer, num_layers)
 
-    train_and_evaluate(model)
-
-    if(MODEL == 'lstm'):
-        MODEL_FINAL_DIR = LSTM_FINAL_DIR
-    elif(MODEL == 'conv'):
-        MODEL_FINAL_DIR = CONV_FINAL_DIR
+    train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, MODEL)
 
     model.save(MODEL_FINAL_DIR)
     print("Evaluating")
     scores = model.evaluate(x_test, y_test, verbose=1)
     print("Acheived result on test set - %s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
+if __name__ == '__main__':
+    for suite in TESTS:
+        model, num_layers = suite
+        train(model, num_layers)
