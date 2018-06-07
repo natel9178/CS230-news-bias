@@ -17,14 +17,20 @@ from keras.models import Model
 from keras.callbacks import TensorBoard, ModelCheckpoint
 import keras.backend as K
 
+from train import MODEL
+
 BASE_DIR = ''
 GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
 TEXT_DATA_DIR = './data/kaggle'
 TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
-MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
+#MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
+LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
+CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
+#MODEL = 'lstm'
+
 
 def index_glove_embeddings(fname):
     # first, build index mapping words in the embeddings set
@@ -113,12 +119,15 @@ if __name__ == '__main__':
     y_test = np.asarray(y_test)
 
     embedding_layer = create_embedding_layer(word_index)
-    model = model_fn('conv', embedding_layer)
+    model = model_fn(MODEL, embedding_layer)
 
     model.compile(loss='binary_crossentropy',
                 optimizer='adam',
                 metrics=['acc'])
-
+    if(MODEL == 'lstm'):
+        MODEL_CP_DIR = LSTM_FINAL_DIR
+    elif(MODEL == 'conv'):
+        MODEL_CP_DIR = CONV_FINAL_DIR
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
         model.load_weights(MODEL_CP_DIR)
