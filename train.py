@@ -103,7 +103,7 @@ def model_fn(model_type, embedding_layer):
         preds = Activation('softmax')(X)
     else:
         x = embedded_sequences
-        for i in range(NUM_CONV_LAYERS-1):
+        for i in range(NUM_LAYERS-1):
             x = Conv1D(128, 5, activation='relu')(x)
             x = MaxPooling1D(5)(x)
         # x = Conv1D(128, 5, activation='relu')(embedded_sequences)
