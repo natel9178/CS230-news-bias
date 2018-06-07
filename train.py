@@ -100,7 +100,7 @@ def model_fn(model_type, embedding_layer):
         X = Dropout(0.2)(X)
         X = Dense(2)(X)
         preds = Activation('softmax')(X)
-    elif model_type = 'conv':
+    elif model_type == 'conv':
         x = embedded_sequences
         for i in range(NUM_LAYERS-1):
             x = Conv1D(128, 5, activation='relu')(x)
