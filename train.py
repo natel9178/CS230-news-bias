@@ -94,8 +94,13 @@ def model_fn(model_type, embedding_layer):
         X = Dense(2)(X)
         preds = Activation('softmax')(X)
     else:
-        x = Conv1D(128, 5, activation='relu')(embedded_sequences)
-        x = MaxPooling1D(5)(x)
+        num_conv_layers = 2
+        x = embedded_sequences
+        for i in range(num_conv_layers-1):
+            x = Conv1D(128, 5, activation='relu')(x)
+            x = MaxPooling1D(5)(x)
+        # x = Conv1D(128, 5, activation='relu')(embedded_sequences)
+        # x = MaxPooling1D(5)(x)
         x = Conv1D(128, 5, activation='relu')(x)
         x = GlobalMaxPooling1D()(x)
         x = Dense(128, activation='relu')(x)
