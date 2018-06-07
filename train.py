@@ -92,14 +92,14 @@ def model_fn(model_type, embedding_layer):
         X = LSTM(128, return_sequences=False)(X)
         X = Dropout(0.2)(X)
         X = Dense(2)(X)
-        preds = Activation('sigmoid')(X)
+        preds = Activation('softmax')(X)
     else:
         x = Conv1D(128, 5, activation='relu')(embedded_sequences)
         x = MaxPooling1D(5)(x)
         x = Conv1D(128, 5, activation='relu')(x)
         x = GlobalMaxPooling1D()(x)
         x = Dense(128, activation='relu')(x)
-        preds = Dense(2, activation='sigmoid')(x)
+        preds = Dense(2, activation='softmax')(x)
 
     return Model(sequence_input, preds)
 
