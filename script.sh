@@ -1,3 +1,3 @@
-#!bin/bash
-module load cudnn/6.0
+#!/bin/bash
+module load cudnn
 python3 train.py
