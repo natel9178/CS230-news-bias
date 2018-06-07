@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
     y_test = np.asarray(y_test)
 
-    embedding_layer = create_embedding_layer(word_index)
+    embedding_layer = create_embedding_layer(word_index, embeddings_index)
     
     if(MODEL == 'lstm'):
         MODEL_FINAL_DIR = LSTM_FINAL_DIR
