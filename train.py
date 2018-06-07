@@ -21,11 +21,17 @@ BASE_DIR = ''
 GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
 TEXT_DATA_DIR = './data/kaggle'
 TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
-MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
-MODEL_FINAL_DIR = 'experiments/weights/weights.final.hdf5'
+#MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
+#MODEL_FINAL_DIR = 'experiments/weights/weights.final.hdf5'
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
+MODEL = 'lstm'
+LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
+CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
+LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
+CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
+
 
 def index_glove_embeddings(fname):
     # first, build index mapping words in the embeddings set
@@ -97,6 +103,10 @@ def model_fn(model_type, embedding_layer):
 
 def train_and_evaluate(model):
     print('Training model.')
+    if(MODEL = 'lstm'):
+        MODEL_CP_DIR = LSTM_CP_DIR
+    elif(MODEL = 'conv'):
+        MODEL_CP_DIR = CONV_CP_DIR
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
         model.load_weights(MODEL_CP_DIR)
@@ -150,6 +160,11 @@ if __name__ == '__main__':
     model = model_fn('conv', embedding_layer)
 
     train_and_evaluate(model)
+
+    if(MODEL == 'lstm'):
+        MODEL_FINAL_DIR = LSTM_FINAL_DIR
+    elif(MODEL == 'conv'):
+        MODEL_FINAL_DIR = CONV_FINAL_DIR
 
     model.save(MODEL_FINAL_DIR)
     print("Evaluating")
