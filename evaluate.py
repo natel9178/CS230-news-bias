@@ -125,8 +125,8 @@ if __name__ == '__main__':
     
 
     #model.compile(loss='binary_crossentropy',
-                optimizer='adam',
-                metrics=['acc'])
+    #            optimizer='adam',
+    #            metrics=['acc'])
     if(MODEL == 'lstm'):
         MODEL_FINAL_DIR = LSTM_FINAL_DIR
     elif(MODEL == 'conv'):
