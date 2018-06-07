@@ -112,9 +112,9 @@ def model_fn(model_type, embedding_layer):
         x = Dense(128, activation='relu')(x)
         preds = Dense(2, activation='softmax')(x)
     elif model_type == 'bidirectional':
-        X = Bidirectional(LSTM(128, return_sequences=True)(embedded_sequences))
+        X = Bidirectional(LSTM(128, return_sequences=True))(embedded_sequences)
         X = Dropout(0.2)(X)
-        X = Bidirectional(LSTM(128, return_sequences=False)(X))
+        X = Bidirectional(LSTM(128, return_sequences=False))(X)
         X = Dropout(0.2)(X)
         X = Dense(2)(X)
         preds = Activation('softmax')(X)
