@@ -133,7 +133,7 @@ def train_and_evaluate(model, num_layers, model_type):
                 optimizer='adam',
                 metrics=['acc'])
 
-    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}{}".format(NUM_LAYERS,MODEL,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
+    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}{}".format(num_layers,model,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
     checkpoint = ModelCheckpoint(MODEL_CP_DIR, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     model.fit(x_train, y_train,
@@ -142,6 +142,7 @@ def train_and_evaluate(model, num_layers, model_type):
             validation_data=(x_dev, y_dev), verbose=1, callbacks=[tensorboard, checkpoint])
 
 def train(MODEL, num_layers):
+    print('=========================================')
     print('Reloading for next test suite with {} Model and {} layers'.format(MODEL, num_layers))
     print('Indexing word vectors.')
     embeddings_index = index_glove_embeddings(GLOVE_DIR)
