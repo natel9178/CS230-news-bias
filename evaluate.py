@@ -115,16 +115,12 @@ if __name__ == '__main__':
     embedding_layer = create_embedding_layer(word_index)
     model = model_fn('lstm', embedding_layer)
 
-    if os.path.exists(MODEL_CP_DIR):
+    scores = model.evaluate(x_test, y_test, verbose=1)
+     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
         model.load_weights(MODEL_CP_DIR)
     else:
         print('Model is blank')
         exit
-
-    model.compile(loss='binary_crossentropy',
-                optimizer='adam',
-                metrics=['acc'])
-    scores = model.evaluate(x_test, y_test, verbose=1)
     print("Acheived result on test set - %s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
     
