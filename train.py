@@ -119,7 +119,7 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
 
     return Model(sequence_input, preds)
 
-def train_and_evaluate(model, num_layers, model_type):
+def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_type):
     print('Training model.')
 
     MODEL_CP_DIR = '{}{}{}{}'.format('experiments/weights/',num_layers,model_type,'_weights.best.hdf5')
@@ -179,7 +179,7 @@ def train(MODEL, num_layers):
     embedding_layer = create_embedding_layer(word_index, embeddings_index)
     model = model_fn(MODEL, embedding_layer, num_layers)
 
-    train_and_evaluate(model, num_layers, MODEL)
+    train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, MODEL)
 
     model.save(MODEL_FINAL_DIR)
     print("Evaluating")
