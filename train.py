@@ -186,4 +186,4 @@ def train(MODEL, num_layers):
     print("Acheived result on test set - %s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 if __name__ == '__main__':
-    train('conv', 2):
+    train('conv', 2)
