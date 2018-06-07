@@ -31,7 +31,7 @@ EMBEDDING_DIM = 100
 
 NUM_CLASSES = '3_class_'
 
-TESTS = [('conv', 1), ('lstm', 1), ('lstm', 2), ('lstm', 3), ('bidirectional', 1), ('bidirectional', 2), ('bidirectional', 3)]
+TESTS = [('conv', 1), ('conv', 2), ('conv', 3), ('conv', 4), ('lstm', 1), ('lstm', 2), ('lstm', 3), ('bidirectional', 1), ('bidirectional', 2), ('bidirectional', 3)]
 #MODEL = 'bidirectional'
 
 # LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
