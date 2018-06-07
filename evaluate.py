@@ -113,7 +113,7 @@ if __name__ == '__main__':
     y_test = np.asarray(y_test)
 
     embedding_layer = create_embedding_layer(word_index)
-    model = model_fn('conv', embedding_layer)
+    model = model_fn('lstm', embedding_layer)
 
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
