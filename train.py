@@ -28,6 +28,9 @@ TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
+
+NUM_CLASSES = '3_class_'
+
 TESTS = [('conv', 1), ('lstm', 1), ('lstm', 2), ('lstm', 3), ('bidirectional', 1), ('bidirectional', 2), ('bidirectional', 3)]
 #MODEL = 'bidirectional'
 
@@ -122,8 +125,8 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
 def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_type):
     print('Training model.')
 
-    MODEL_CP_DIR = '{}{}{}{}'.format('experiments/weights/',num_layers,model_type,'_weights.best.hdf5')
-    MODEL_FINAL_DIR = '{}{}{}{}'.format('experiments/weights/',num_layers,model_type,'_weights.final.hdf5')
+    MODEL_CP_DIR = '{}{}{}{}{}'.format('experiments/weights/',NUM_CLASSES,num_layers,model_type,'_weights.best.hdf5')
+    MODEL_FINAL_DIR = '{}{}{}{}{}'.format('experiments/weights/',NUM_CLASSES,num_layers,model_type,'_weights.final.hdf5')
 
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
@@ -133,7 +136,7 @@ def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_
                 optimizer='adam',
                 metrics=['acc'])
 
-    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}{}".format(num_layers,model_type,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
+    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}{}{}".format(NUM_CLASSES,num_layers,model_type,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
     checkpoint = ModelCheckpoint(MODEL_CP_DIR, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     model.fit(x_train, y_train,
@@ -142,7 +145,7 @@ def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_
             validation_data=(x_dev, y_dev), verbose=1, callbacks=[tensorboard, checkpoint])
 
 def train(MODEL, num_layers):
-    MODEL_FINAL_DIR = '{}{}{}{}'.format('experiments/weights/',num_layers,MODEL,'_weights.final.hdf5')
+    MODEL_FINAL_DIR = '{}{}{}{}{}'.format('experiments/weights/',NUM_CLASSES,num_layers,MODEL,'_weights.final.hdf5')
     print('=========================================')
     print('Reloading for next test suite with {} Model and {} layers'.format(MODEL, num_layers))
     print('Indexing word vectors.')
