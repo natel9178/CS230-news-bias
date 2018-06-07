@@ -118,9 +118,6 @@ GloVe/
 # data
 data/
 
-# tf
-*tfevents*
-
 # Checkpoints and metrics
 glove*
 weights.best*
