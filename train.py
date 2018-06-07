@@ -30,8 +30,7 @@ MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
 MODEL = 'conv'
 
-NUM_LAYERS = 2
-NUM_LAYERS = 2
+NUM_LAYERS = 3
 
 # LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
 # CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
