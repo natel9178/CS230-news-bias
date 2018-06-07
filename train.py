@@ -96,7 +96,7 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
             X = Dropout(0.2)(X)
         X = LSTM(128, return_sequences=False)(X)
         X = Dropout(0.2)(X)
-        X = Dense(2)(X)
+        X = Dense(3)(X)
         preds = Activation('softmax')(X)
     elif model_type == 'conv':
         x = embedded_sequences
@@ -106,7 +106,7 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
         x = Conv1D(128, 5, activation='relu')(x)
         x = GlobalMaxPooling1D()(x)
         x = Dense(128, activation='relu')(x)
-        preds = Dense(2, activation='softmax')(x)
+        preds = Dense(3, activation='softmax')(x)
     elif model_type == 'bidirectional':
         X = embedded_sequences
         for i in range(num_layers-1):
@@ -114,7 +114,7 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
             X = Dropout(0.2)(X)
         X = Bidirectional(LSTM(128, return_sequences=False))(X)
         X = Dropout(0.2)(X)
-        X = Dense(2)(X)
+        X = Dense(3)(X)
         preds = Activation('softmax')(X)
 
     return Model(sequence_input, preds)
@@ -133,7 +133,7 @@ def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_
                 optimizer='adam',
                 metrics=['acc'])
 
-    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}{}".format(num_layers,model,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
+    tensorboard = TensorBoard(log_dir=os.path.join(TENSORBOARD_BASE_DIR, "{}{}{}".format(num_layers,model_type,strftime("%Y-%m-%d_%H-%M-%S", localtime()))))
     checkpoint = ModelCheckpoint(MODEL_CP_DIR, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     model.fit(x_train, y_train,

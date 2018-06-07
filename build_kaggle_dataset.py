@@ -7,7 +7,7 @@ import numpy as np
 
 csv.field_size_limit(sys.maxsize)
 
-def load_dataset(path_csv, dataset = []):
+def load_dataset(path_csv, dataset = [], dataset_type='train'):
     """Loads dataset into memory from csv file"""
     # Open the csv file, need to specify the encoding for python3
     use_python3 = sys.version_info[0] >= 3
@@ -19,12 +19,24 @@ def load_dataset(path_csv, dataset = []):
             if idx == 0: continue
             e,id,title,publication,author,date,year,month,url,content = row
             label = 0
-            if publication == "Fox News" or publication == "New York Times":
-                label = 1
-            elif publication == "Reuters":
-                label = 0
-            else:
-                continue
+            if dataset_type == 'train':
+                if publication == "Fox News" or publication == "Breitbart":
+                    label = 0
+                elif publication == "Reuters" or publication == "CNN":
+                    label = 1
+                elif publication == "New York Times" or publication == "Atlantic":
+                    label = 2
+                else:
+                    continue
+            elif dataset_type == 'test':
+                if publication == "Fox News" or publication == "Breitbart" or publication == "New York Post" or publication == "National Review":
+                    label = 0
+                elif publication == "Reuters" or publication == "CNN" or publication == "Washington Post":
+                    label = 1
+                elif publication == "New York Times" or publication == "Atlantic" or publication == "Guardian" or publication == "NPR" or publication == "Vox":
+                    label = 2
+                else:
+                    continue
 
             dataset.append((content.replace("\n",""), label))
 
@@ -74,9 +86,18 @@ if __name__ == "__main__":
     np.random.shuffle(dataset)
 
     # Split the dataset into train, dev and split (dummy split with no shuffle)
-    train_dataset = dataset[:int(0.7*len(dataset))]
-    dev_dataset = dataset[int(0.7*len(dataset)) : int(0.85*len(dataset))]
-    test_dataset = dataset[int(0.85*len(dataset)):]
+    train_dataset = dataset[:int(0.8*len(dataset))]
+    dev_dataset = dataset[int(0.8*len(dataset)):]
+
+    print("Loading All The News dataset into memory...")
+    dataset = load_dataset(path_dataset1, dataset_type='test')
+    dataset = load_dataset(path_dataset2, dataset, dataset_type='test')
+    dataset = load_dataset(path_dataset3, dataset, dataset_type='test')
+    print("- done.")
+
+    np.random.shuffle(dataset)
+
+    test_dataset = dataset[:int(0.1*len(dataset))]
 
     # Save the datasets to files
     save_dataset(train_dataset, 'data/kaggle/train')
