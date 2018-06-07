@@ -100,7 +100,7 @@ if __name__ == '__main__':
     word_index = tokenizer.word_index
     print('Found %s unique tokens.' % len(word_index))
 
-    y_test = np.asarray(y_test)
+    y_test = to_categorical(np.asarray(y_test))
 
     embedding_layer = create_embedding_layer(word_index, embeddings_index)
     
