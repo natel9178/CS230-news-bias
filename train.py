@@ -12,7 +12,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from keras.layers import Dense, Input, GlobalMaxPooling1D
-from keras.layers import Conv1D, MaxPooling1D, Embedding, LSTM, Dropout, Activation
+from keras.layers import Conv1D, MaxPooling1D, Embedding, LSTM, Dropout, Activation, Bidirectional
 from keras.models import Model
 from keras.callbacks import TensorBoard, ModelCheckpoint
 import keras.backend as K
@@ -28,9 +28,9 @@ TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
-MODEL = 'conv'
+MODEL = 'bidirectional'
 
-NUM_LAYERS = 3
+NUM_LAYERS = 2
 
 # LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
 # CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
@@ -100,7 +100,7 @@ def model_fn(model_type, embedding_layer):
         X = Dropout(0.2)(X)
         X = Dense(2)(X)
         preds = Activation('softmax')(X)
-    else:
+    elif model_type = 'conv':
         x = embedded_sequences
         for i in range(NUM_LAYERS-1):
             x = Conv1D(128, 5, activation='relu')(x)
@@ -111,6 +111,13 @@ def model_fn(model_type, embedding_layer):
         x = GlobalMaxPooling1D()(x)
         x = Dense(128, activation='relu')(x)
         preds = Dense(2, activation='softmax')(x)
+    elif model_type = 'bidirectional':
+        X = Bidirectional(LSTM(128, return_sequences=True)(embedded_sequences))
+        X = Dropout(0.2)(X)
+        X = Bidirectional(LSTM(128, return_sequences=False)(X))
+        X = Dropout(0.2)(X)
+        X = Dense(2)(X)
+        preds = Activation('softmax')(X)
 
     return Model(sequence_input, preds)
 
