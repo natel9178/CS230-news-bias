@@ -22,6 +22,7 @@ GLOVE_DIR = './data/GloVe/glove.6B.100d.txt'
 TEXT_DATA_DIR = './data/kaggle'
 TENSORBOARD_BASE_DIR = 'experiments/tensorboard'
 MODEL_CP_DIR = 'experiments/weights/weights.best.hdf5'
+MODEL_FINAL_DIR = 'experiments/weights/weights.final.hdf5'
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
@@ -121,6 +122,8 @@ if __name__ == '__main__':
     y_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/tags.txt'))
     x_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/articles.txt'))
     y_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/tags.txt'))
+    x_test = load_text_dataset(os.path.join(TEXT_DATA_DIR,'test/articles.txt'))
+    y_test = load_text_dataset(os.path.join(TEXT_DATA_DIR,'test/tags.txt'))
     print('Found %s texts.' % len(x_train))
 
     tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
@@ -129,12 +132,15 @@ if __name__ == '__main__':
     x_train = pad_sequences(x_train, maxlen=MAX_SEQUENCE_LENGTH)
     x_dev = tokenizer.texts_to_sequences(x_dev)
     x_dev = pad_sequences(x_dev, maxlen=MAX_SEQUENCE_LENGTH)
+    x_test = tokenizer.texts_to_sequences(x_test)
+    x_test = pad_sequences(x_test, maxlen=MAX_SEQUENCE_LENGTH)
 
     word_index = tokenizer.word_index
     print('Found %s unique tokens.' % len(word_index))
 
     y_train = np.asarray(y_train)
     y_dev = np.asarray(y_dev)
+    y_test = np.asarray(y_test)
     print('Shape of data tensor:', x_train.shape)
     print('Shape of label tensor:', y_train.shape)
     print('Shape of data tensor dev:', x_dev.shape)
@@ -144,3 +150,9 @@ if __name__ == '__main__':
     model = model_fn('lstm', embedding_layer)
 
     train_and_evaluate(model)
+
+    model.save(MODEL_FINAL_DIR)
+    print("Evaluating")
+    scores = model.evaluate(x_test, y_test, verbose=1)
+    print("Acheived result on test set - %s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+
