@@ -30,13 +30,17 @@ MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
 MODEL = 'conv'
 
-NUM_CONV_LAYERS = 2
+NUM_LAYERS = 2
+NUM_LAYERS = 2
 
-LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
-#CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
-CONV_CP_DIR = '{}{}{}'.format('experiments/weights/',NUM_CONV_LAYERS,'conv_weights.best.hdf5')
-LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
-CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
+# LSTM_CP_DIR = 'experiments/weights/lstm_weights.best.hdf5'
+# CONV_CP_DIR = 'experiments/weights/conv_weights.best.hdf5'
+# CONV_CP_DIR = '{}{}{}'.format('experiments/weights/',NUM_LAYERS,'conv_weights.best.hdf5')
+# LSTM_FINAL_DIR = 'experiments/weights/lstm_weights.final.hdf5'
+# CONV_FINAL_DIR = 'experiments/weights/conv_weights.final.hdf5'
+
+MODEL_CP_DIR = '{}{}{}{}'.format('experiments/weights/',NUM_LAYERS,MODEL,'_weights.best.hdf5')
+MODEL_FINAL_DIR = '{}{}{}{}'.format('experiments/weights/',NUM_LAYERS,MODEL,'_weights.final.hdf5')
 
 
 def index_glove_embeddings(fname):
@@ -113,10 +117,10 @@ def model_fn(model_type, embedding_layer):
 
 def train_and_evaluate(model):
     print('Training model.')
-    if(MODEL == 'lstm'):
-        MODEL_CP_DIR = LSTM_CP_DIR
-    elif(MODEL == 'conv'):
-        MODEL_CP_DIR = CONV_CP_DIR
+    # if(MODEL == 'lstm'):
+    #     MODEL_CP_DIR = LSTM_CP_DIR
+    # elif(MODEL == 'conv'):
+    #     MODEL_CP_DIR = CONV_CP_DIR
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
         model.load_weights(MODEL_CP_DIR)
@@ -173,10 +177,10 @@ if __name__ == '__main__':
 
     train_and_evaluate(model)
 
-    if(MODEL == 'lstm'):
-        MODEL_FINAL_DIR = LSTM_FINAL_DIR
-    elif(MODEL == 'conv'):
-        MODEL_FINAL_DIR = CONV_FINAL_DIR
+    # if(MODEL == 'lstm'):
+    #     MODEL_FINAL_DIR = LSTM_FINAL_DIR
+    # elif(MODEL == 'conv'):
+    #     MODEL_FINAL_DIR = CONV_FINAL_DIR
 
     model.save(MODEL_FINAL_DIR)
     print("Evaluating")
