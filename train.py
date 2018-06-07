@@ -103,9 +103,9 @@ def model_fn(model_type, embedding_layer):
 
 def train_and_evaluate(model):
     print('Training model.')
-    if(MODEL = 'lstm'):
+    if(MODEL == 'lstm'):
         MODEL_CP_DIR = LSTM_CP_DIR
-    elif(MODEL = 'conv'):
+    elif(MODEL == 'conv'):
         MODEL_CP_DIR = CONV_CP_DIR
     if os.path.exists(MODEL_CP_DIR):
         print('Loading previous model weights.')
