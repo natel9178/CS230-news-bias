@@ -21,20 +21,20 @@ def load_dataset(path_csv, dataset = [], dataset_type='train'):
             label = 0
             if dataset_type == 'train':
                 if publication == "Fox News" or publication == "Breitbart":
-                    label = 0
-                elif publication == "Reuters" or publication == "CNN":
                     label = 1
+                elif publication == "Reuters" or publication == "CNN":
+                    label = 0
                 elif publication == "New York Times" or publication == "Atlantic":
-                    label = 2
+                    label = 1
                 else:
                     continue
             elif dataset_type == 'test':
                 if publication == "Fox News" or publication == "Breitbart" or publication == "New York Post" or publication == "National Review":
-                    label = 0
-                elif publication == "Reuters" or publication == "CNN" or publication == "Washington Post":
                     label = 1
+                elif publication == "Reuters" or publication == "CNN" or publication == "Washington Post":
+                    label = 0
                 elif publication == "New York Times" or publication == "Atlantic" or publication == "Guardian" or publication == "NPR" or publication == "Vox":
-                    label = 2
+                    label = 1
                 else:
                     continue
 
