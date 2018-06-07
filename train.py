@@ -117,10 +117,10 @@ if __name__ == '__main__':
     embeddings_index = index_glove_embeddings(GLOVE_DIR)
 
     print('Processing text dataset')
-    x_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/articles.txt'), 16005)
-    y_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/tags.txt'), 16005)
-    x_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/articles.txt'), 3429)
-    y_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/tags.txt'), 3429)
+    x_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/articles.txt'))
+    y_train = load_text_dataset(os.path.join(TEXT_DATA_DIR,'train/tags.txt'))
+    x_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/articles.txt'))
+    y_dev = load_text_dataset(os.path.join(TEXT_DATA_DIR,'dev/tags.txt'))
     print('Found %s texts.' % len(x_train))
 
     tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)

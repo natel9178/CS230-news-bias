@@ -26,7 +26,7 @@ def load_dataset(path_csv, dataset = []):
             else:
                 continue
 
-            dataset.append((content, label))
+            dataset.append((content.replace("\n",""), label))
 
     return dataset
 
@@ -47,7 +47,6 @@ def save_dataset(dataset, save_dir):
     with open(os.path.join(save_dir, 'articles.txt'), 'w') as file_articles:
         with open(os.path.join(save_dir, 'tags.txt'), 'w') as file_tags:
             for articles, tags in dataset:
-                
                 file_articles.write("{}\n".format("".join(articles)))
                 file_tags.write("{}\n".format(tags))
     print("- done.")
