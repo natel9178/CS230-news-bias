@@ -131,7 +131,7 @@ if __name__ == '__main__':
         MODEL_FINAL_DIR = LSTM_FINAL_DIR
     elif(MODEL == 'conv'):
         MODEL_FINAL_DIR = CONV_FINAL_DIR
-    if os.path.exists(MODEL_CP_DIR):
+    if os.path.exists(MODEL_FINAL_DIR):
         print('Loading previous model weights.')
         #model.load_weights(MODEL_CP_DIR)
         model = load_model(MODEL_FINAL_DIR)
