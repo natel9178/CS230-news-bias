@@ -70,6 +70,8 @@ if __name__ == '__main__':
             print('Model is blank')
             exit
 
+        print('Model: {} with {} layers'.format(model_name, num_layers))
+
         y_preds = model.predict(x_dev, verbose=1)
 
         # fpr, tpr, thresholds = roc_curve(y_dev, y_preds)
