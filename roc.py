@@ -22,7 +22,7 @@ from keras.models import load_model
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import classification_report
 
 #import matplotlib.pyplot as plt
 
@@ -80,8 +80,9 @@ if __name__ == '__main__':
 
         y_preds = (y_preds > 0.5)
 
-        score = precision_recall_fscore_support(y_dev, y_preds)
-        print('{}{} precision recall fscore support: {}'.format(num_layers,model_name,score))
+        # score = precision_recall_fscore_support(y_dev, y_preds)
+        # print('{}{} precision recall fscore support: {}'.format(num_layers,model_name,score))
+        print(classification_report(y_dev, y_preds))
 
     #     # Plot ROC curve
     #     plt.figure(fig_num)
