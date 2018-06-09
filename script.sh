@@ -1,3 +1,3 @@
 #!/bin/bash
 module load cudnn
-python3 train.py
+python3 build_kaggle_dataset.py
