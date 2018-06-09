@@ -78,6 +78,8 @@ if __name__ == '__main__':
         np.savetxt('{}{}tpr.out'.format(num_layers,model_name), tpr)
         print('{}{} auc: {}'.format(num_layers,model_name,roc_auc))
 
+        y_preds = (y_preds > 0.5)
+
         score = precision_recall_fscore_support(y_dev, y_preds)
         print('{}{} precision recall fscore support: {}'.format(num_layers,model_name,score))
 
