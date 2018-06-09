@@ -22,7 +22,9 @@ from keras.models import load_model
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 
-import matplotlib.pyplot as plt
+from sklearn.metrics import precision_recall_fscore_support
+
+#import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # print('Indexing word vectors.')
@@ -75,6 +77,9 @@ if __name__ == '__main__':
         np.savetxt('{}{}fpr.out'.format(num_layers,model_name), fpr)
         np.savetxt('{}{}tpr.out'.format(num_layers,model_name), tpr)
         print('{}{} auc: {}'.format(num_layers,model_name,roc_auc))
+
+        score = precision_recall_fscore_support(y_dev, y_preds)
+        print('{}{} precision recall fscore support: {}'.format(num_layers,model_name,score))
 
     #     # Plot ROC curve
     #     plt.figure(fig_num)
