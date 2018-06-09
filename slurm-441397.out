@@ -1,0 +1,5 @@
+Using TensorFlow backend.
+Traceback (most recent call last):
+  File "roc.py", line 22, in <module>
+    from sklearn.metrics import roc_curve
+ImportError: No module named 'sklearn'
