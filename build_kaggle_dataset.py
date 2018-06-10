@@ -3,40 +3,49 @@
 import csv
 import os
 import sys
+import numpy as np
 
+csv.field_size_limit(sys.maxsize)
 
-def load_dataset(path_csv):
+def load_dataset(path_csv, dataset = [], dataset_type='train'):
     """Loads dataset into memory from csv file"""
     # Open the csv file, need to specify the encoding for python3
     use_python3 = sys.version_info[0] >= 3
-    with (open(path_csv, encoding="windows-1252") if use_python3 else open(path_csv)) as f:
+    with (open(path_csv, encoding="utf8") if use_python3 else open(path_csv)) as f:
         csv_file = csv.reader(f, delimiter=',')
-        dataset = []
-        words, tags = [], []
 
         # Each line of the csv corresponds to one word
         for idx, row in enumerate(csv_file):
             if idx == 0: continue
-            sentence, word, pos, tag = row
-            # If the first column is non empty it means we reached a new sentence
-            if len(sentence) != 0:
-                if len(words) > 0:
-                    assert len(words) == len(tags)
-                    dataset.append((words, tags))
-                    words, tags = [], []
-            try:
-                word, tag = str(word), str(tag)
-                words.append(word)
-                tags.append(tag)
-            except UnicodeDecodeError as e:
-                print("An exception was raised, skipping a word: {}".format(e))
-                pass
+            e,id,title,publication,author,date,year,month,url,content = row
+            label = 0
+            if dataset_type == 'train':
+                if publication == "Fox News" or publication == "Breitbart":
+                    label = 1
+                elif publication == "Reuters" or publication == "CNN":
+                    label = 0
+                elif publication == "New York Times" or publication == "Atlantic":
+                    label = 1
+
+                else:
+                    continue
+            elif dataset_type == 'test':
+                if publication == "Fox News" or publication == "Breitbart" or publication == "New York Post" or publication == "National Review":
+                    label = 1
+                elif publication == "Reuters" or publication == "CNN" or publication == "Washington Post":
+                    label = 0
+                elif publication == "New York Times" or publication == "Atlantic" or publication == "Guardian" or publication == "NPR" or publication == "Vox":
+                    label = 1
+                else:
+                    continue
+
+            dataset.append((content.replace("\n",""), label))
 
     return dataset
 
 
 def save_dataset(dataset, save_dir):
-    """Writes sentences.txt and labels.txt files in save_dir from dataset
+    """Writes sentences.txt and lsabels.txt files in save_dir from dataset
 
     Args:
         dataset: ([(["a", "cat"], ["O", "O"]), ...])
@@ -48,29 +57,48 @@ def save_dataset(dataset, save_dir):
         os.makedirs(save_dir)
 
     # Export the dataset
-    with open(os.path.join(save_dir, 'sentences.txt'), 'w') as file_sentences:
-        with open(os.path.join(save_dir, 'labels.txt'), 'w') as file_labels:
-            for words, tags in dataset:
-                file_sentences.write("{}\n".format(" ".join(words)))
-                file_labels.write("{}\n".format(" ".join(tags)))
+    with open(os.path.join(save_dir, 'articles.txt'), 'w') as file_articles:
+        with open(os.path.join(save_dir, 'tags.txt'), 'w') as file_tags:
+            for articles, tags in dataset:
+                file_articles.write("{}\n".format("".join(articles)))
+                file_tags.write("{}\n".format(tags))
     print("- done.")
 
 
 if __name__ == "__main__":
     # Check that the dataset exists (you need to make sure you haven't downloaded the `ner.csv`)
-    path_dataset = 'data/kaggle/ner_dataset.csv'
-    msg = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset)
-    assert os.path.isfile(path_dataset), msg
+    path_dataset1 = 'data/kaggle/articles1.csv'
+    path_dataset2 = 'data/kaggle/articles2.csv'
+    path_dataset3 = 'data/kaggle/articles3.csv'
+    msg1 = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset1)
+    msg2 = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset2)
+    msg3 = "{} file not found. Make sure you have downloaded the right dataset".format(path_dataset3)
+    assert os.path.isfile(path_dataset1), msg1
+    assert os.path.isfile(path_dataset2), msg2
+    assert os.path.isfile(path_dataset3), msg3
 
     # Load the dataset into memory
-    print("Loading Kaggle dataset into memory...")
-    dataset = load_dataset(path_dataset)
+    print("Loading All The News dataset into memory...")
+    dataset = load_dataset(path_dataset1)
+    dataset = load_dataset(path_dataset2, dataset)
+    dataset = load_dataset(path_dataset3, dataset)
     print("- done.")
 
+    np.random.shuffle(dataset)
+
     # Split the dataset into train, dev and split (dummy split with no shuffle)
-    train_dataset = dataset[:int(0.7*len(dataset))]
-    dev_dataset = dataset[int(0.7*len(dataset)) : int(0.85*len(dataset))]
-    test_dataset = dataset[int(0.85*len(dataset)):]
+    train_dataset = dataset[:int(0.8*len(dataset))]
+    dev_dataset = dataset[int(0.8*len(dataset)):]
+
+    print("Loading All The News dataset into memory...")
+    dataset = load_dataset(path_dataset1, dataset_type='test')
+    dataset = load_dataset(path_dataset2, dataset, dataset_type='test')
+    dataset = load_dataset(path_dataset3, dataset, dataset_type='test')
+    print("- done.")
+
+    np.random.shuffle(dataset)
+
+    test_dataset = dataset[:int(0.1*len(dataset))]
 
     # Save the datasets to files
     save_dataset(train_dataset, 'data/kaggle/train')
