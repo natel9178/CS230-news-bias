@@ -29,7 +29,7 @@ MAX_SEQUENCE_LENGTH = 1000
 MAX_NUM_WORDS = 20000
 EMBEDDING_DIM = 100
 
-NUM_CLASSES = '3_class_'
+NUM_CLASSES = 'binary_'
 
 TESTS = [('conv', 1), ('conv', 2), ('conv', 3), ('conv', 4), ('lstm', 1), ('lstm', 2), ('lstm', 3), ('bidirectional', 1), ('bidirectional', 2), ('bidirectional', 3)]
 #MODEL = 'bidirectional'
@@ -99,8 +99,8 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
             X = Dropout(0.2)(X)
         X = LSTM(128, return_sequences=False)(X)
         X = Dropout(0.2)(X)
-        X = Dense(3)(X)
-        preds = Activation('softmax')(X)
+        X = Dense(1)(X)
+        preds = Activation('sigmoid')(X)
     elif model_type == 'conv':
         x = embedded_sequences
         for i in range(num_layers-1):
@@ -109,7 +109,7 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
         x = Conv1D(128, 5, activation='relu')(x)
         x = GlobalMaxPooling1D()(x)
         x = Dense(128, activation='relu')(x)
-        preds = Dense(3, activation='softmax')(x)
+        preds = Dense(1, activation='sigmoid')(x)
     elif model_type == 'bidirectional':
         X = embedded_sequences
         for i in range(num_layers-1):
@@ -117,8 +117,8 @@ def model_fn(model_type, embedding_layer, num_layers = 2):
             X = Dropout(0.2)(X)
         X = Bidirectional(LSTM(128, return_sequences=False))(X)
         X = Dropout(0.2)(X)
-        X = Dense(3)(X)
-        preds = Activation('softmax')(X)
+        X = Dense(1)(X)
+        preds = Activation('sigmoid')(X)
 
     return Model(sequence_input, preds)
 
@@ -132,7 +132,7 @@ def train_and_evaluate(x_train, y_train, x_dev, y_dev, model, num_layers, model_
         print('Loading previous model weights.')
         model.load_weights(MODEL_CP_DIR)
     
-    model.compile(loss='categorical_crossentropy',
+    model.compile(loss='binary_crossentropy',
                 optimizer='adam',
                 metrics=['acc'])
 
@@ -172,9 +172,9 @@ def train(MODEL, num_layers):
     word_index = tokenizer.word_index
     print('Found %s unique tokens.' % len(word_index))
 
-    y_train = to_categorical(np.asarray(y_train))
-    y_dev = to_categorical(np.asarray(y_dev))
-    y_test = to_categorical(np.asarray(y_test))
+    y_train = np.asarray(y_train)
+    y_dev = np.asarray(y_dev)
+    y_test = np.asarray(y_test)
     print('Shape of data tensor:', x_train.shape)
     print('Shape of label tensor:', y_train.shape)
     print('Shape of data tensor dev:', x_dev.shape)
