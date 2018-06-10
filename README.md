@@ -9,3 +9,9 @@ Recent trends in media consumption as well as increasing Internet access to news
 ## Additional Data
 
 See additional data, and project milestones under `Project Report`
+
+## Branch Descriptions
+
+**binary**: contains code modificaitons for binary classifications (bias/notbias)
+
+**final-experiments**: contains code modificaitons for 3-Class classifications (Liberal/Neutral/Conservative)
