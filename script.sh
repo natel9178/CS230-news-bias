@@ -1,3 +1,3 @@
 #!/bin/bash
 module load cudnn
-python3 roc.py
+python3 train.py
