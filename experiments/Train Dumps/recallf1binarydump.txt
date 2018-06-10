@@ -1,0 +1,106 @@
+python3 roc.py
+/Users/nathaniel/miniconda3/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+Found 13063 texts.
+Found 306586 unique tokens.
+Loading previous model weights.
+2018-06-09 03:35:31.066123: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+13063/13063 [==============================] - 23s 2ms/step
+1conv auc: 0.9542630733661601
+             precision    recall  f1-score   support
+
+          0       0.94      0.61      0.74      4444
+          1       0.83      0.98      0.90      8619
+
+avg / total       0.87      0.86      0.85     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 28s 2ms/step
+2conv auc: 0.9163671979798049
+             precision    recall  f1-score   support
+
+          0       0.92      0.58      0.71      4444
+          1       0.82      0.97      0.89      8619
+
+avg / total       0.85      0.84      0.83     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 28s 2ms/step
+3conv auc: 0.8994227607584985
+             precision    recall  f1-score   support
+
+          0       0.94      0.55      0.69      4444
+          1       0.81      0.98      0.89      8619
+
+avg / total       0.85      0.83      0.82     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 27s 2ms/step
+4conv auc: 0.8615923635524012
+             precision    recall  f1-score   support
+
+          0       0.96      0.51      0.67      4444
+          1       0.80      0.99      0.88      8619
+
+avg / total       0.85      0.83      0.81     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 68s 5ms/step
+1lstm auc: 0.9400119876241018
+             precision    recall  f1-score   support
+
+          0       0.96      0.52      0.67      4444
+          1       0.80      0.99      0.88      8619
+
+avg / total       0.85      0.83      0.81     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 150s 12ms/step
+2lstm auc: 0.8809860580558576
+             precision    recall  f1-score   support
+
+          0       0.96      0.49      0.65      4444
+          1       0.79      0.99      0.88      8619
+
+avg / total       0.85      0.82      0.80     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 246s 19ms/step
+3lstm auc: 0.9381917438176118
+             precision    recall  f1-score   support
+
+          0       0.95      0.55      0.69      4444
+          1       0.81      0.98      0.89      8619
+
+avg / total       0.86      0.84      0.82     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 101s 8ms/step
+1bidirectional auc: 0.9285684616146961
+             precision    recall  f1-score   support
+
+          0       0.96      0.55      0.70      4444
+          1       0.81      0.99      0.89      8619
+
+avg / total       0.86      0.84      0.82     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 284s 22ms/step
+2bidirectional auc: 0.9413876429411129
+             precision    recall  f1-score   support
+
+          0       0.96      0.56      0.71      4444
+          1       0.81      0.99      0.89      8619
+
+avg / total       0.86      0.84      0.83     13063
+
+Loading previous model weights.
+13063/13063 [==============================] - 464s 36ms/step
+3bidirectional auc: 0.8540092435975236
+             precision    recall  f1-score   support
+
+          0       0.96      0.50      0.66      4444
+          1       0.80      0.99      0.88      8619
+
+avg / total       0.85      0.83      0.81     13063
