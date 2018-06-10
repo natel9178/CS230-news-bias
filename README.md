@@ -15,3 +15,7 @@ See additional data, and project milestones under `Project Report`
 **binary**: contains code modificaitons for binary classifications (bias/notbias)
 
 **final-experiments**: contains code modificaitons for 3-Class classifications (Liberal/Neutral/Conservative)
+
+## Thanks
+
+Our political bias detection algorithm is made possible by the support of the DeepNews.AI team led by Stanford's John S. Knight Senior Research Fellow Frederic Filloux and sponsored by the Google European Innovation Fund. Also, thank you to the CS230 Course Staff, and Prof. Andrew Ng.
